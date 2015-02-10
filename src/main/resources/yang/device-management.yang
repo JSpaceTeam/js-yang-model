@@ -1,0 +1,789 @@
+submodule device-management {
+    yang-version 1;
+    belongs-to "jspace" {
+        prefix "jspace";
+    }
+
+    import ietf-inet-types { prefix "inet"; }
+    import ietf-yang-types { prefix "yang"; }
+    import iq-ifmap-types { prefix "ifmap"; }
+    contact "JUNOS Space <jspace@juniper.net>";
+    organization "Juniper Networks";
+    description "YANG definition for the device-management";
+    revision "2015-02-05" {
+        description "Initial revision";
+    }
+
+    list device {
+        description "Device List";
+        uses ifmap:Identity;
+        key uuid;
+
+        leaf deviceType {
+            type string;
+            config false;
+            description "Device type";
+        }
+
+        container system {
+            description "Device system info";
+
+            leaf hostname {
+                type string;
+                description "Name";
+            }
+            leaf ip {
+                type inet:ip-address;
+                description "Device mgt IP";
+            }
+            leaf vendor {
+                type string;
+                description "Vendor";
+            }
+            leaf platform {
+                type string;
+                description "Platform";
+            }
+            leaf family {
+                type string;
+                description "Device family";
+            }
+            leaf osVersion {
+                type string;
+                description "OS version";
+            }
+            leaf serial {
+                type string;
+                description "Serial Number";
+            }
+            leaf lastRebootTime {
+                type yang:timestamp;
+                description "Last reboot timestamp";
+            }
+        }
+        // container system
+
+        container lsys-info {
+            description "LSYS Info";
+
+            choice lsysType {
+                description "Supported LSYS types";
+                config false;
+                default none;
+
+                case none {
+                    leaf none {
+                        type empty;
+                        description "Current device is not configured as either LSYS root or LSYS
+                                                member";
+                    }
+                }
+                case lsysMembers {
+                    container lsysMembers {
+                        list lsys {
+                            description "member LSYS devices with current device as the LSYS root device";
+                            key "uuid";
+
+                            leaf uuid {
+                                type deviceIdRef;
+                                description "Member LSYS device ID";
+                            }
+                            leaf name {
+                                type string;
+                                description "Member LSYS device name";
+                            }
+                        }
+                    }
+                }
+                case lsysRoot {
+                    container lsysRoot {
+                        description "LSYS root info for current LSYS member";
+
+                        leaf uuid {
+                            type deviceIdRef;
+                            description "LSYS root device ID";
+                        }
+                        leaf name {
+                            type string;
+                            description "LSYS root device name";
+                        }
+                    }
+                }
+            }
+        }
+
+        container redundancy {
+            description "Redundancy info";
+
+            leaf masterRE {
+                type string;
+                description "Master RE name";
+            }
+
+            leaf status {
+                type redundancyStatusEnum;
+                description "Redundancy Status";
+            }
+
+            list peer {
+                description "Redundancy Peers";
+                key "uuid";
+
+                leaf uuid {
+                    type deviceIdRef;
+                    description "Peer device ID";
+                }
+                leaf name {
+                    type string;
+                    description "Peer device name";
+                }
+            }
+        }
+
+        container config-info {
+            description "Configuration info";
+
+            leaf schemaVersion {
+                type string;
+                description "Schema version";
+            }
+            leaf configStatus {
+                type deviceConfigStatusEnum;
+                description "Config Status";
+            }
+            leaf candidateConfigState {
+                type candidateConfigStateEnum;
+                description "Candidate Config State";
+            }
+        }
+
+        container mgt-connection {
+            description "Device connection info";
+
+            leaf type {
+                type connectionTypeEnum;
+                description "Device connection type";
+            }
+            leaf auth {
+                type authEnum;
+                description "Authentication status";
+            }
+            leaf status {
+                type connectionStatusEnum;
+                description "Device connection status";
+            }
+            leaf webMgt {
+                type boolean;
+                description "Device WebUI enabled";
+            }
+        }
+
+        container active-configuration {
+            description "";
+            uses ifmap:Identity;
+
+            leaf configSyncTime {
+                type yang:timestamp;
+            }
+            leaf interfaceXml {
+                type string;
+            }
+            leaf rawXml {
+                type string;
+            }
+            leaf unresolvedRawxml {
+                type string;
+            }
+            leaf configXml {
+                type string;
+            }
+        }
+
+        list oob-change {
+            description "Out of band change";
+            uses ifmap:Identity;
+            key uuid;
+
+            leaf authors {
+                type string;
+                description "Authors";
+            }
+            leaf timeStamp {
+                type yang:timestamp;
+                description "TimeStamp";
+            }
+            leaf changeXml {
+                type string;
+                description "Change XML";
+            }
+            leaf negativeChangeXml {
+                type string;
+                description "Negative change XML";
+            }
+            leaf changeType {
+                type uint32;
+                description "Change type";
+            }
+            leaf commitComment {
+                type string;
+                description "Commit comments";
+            }
+            leaf appName {
+                type string;
+                description "App name";
+            }
+            leaf crId {
+                type uint32;
+                description "CR ID";
+            }
+            leaf processingComments {
+                type string;
+                description "Processing Comments";
+            }
+        }
+
+        list change-log {
+            description "Device config change log";
+            uses ifmap:Identity;
+            key uuid;
+
+            leaf authors {
+                type string;
+                description "Authors";
+            }
+            leaf timeStamp {
+                type yang:timestamp;
+                description "TimeStamp";
+            }
+            leaf changeXml {
+                type string;
+                description "Change XML";
+            }
+            leaf negativeChangeXml {
+                type string;
+                description "Negative change XML";
+            }
+            leaf changeType {
+                type uint32;
+                description "Change type";
+            }
+            leaf commitComment {
+                type string;
+                description "Commit comments";
+            }
+            leaf appName {
+                type string;
+                description "App name";
+            }
+            leaf crId {
+                type uint32;
+                description "CR ID";
+            }
+            leaf processingComments {
+                type string;
+                description "Processing Comments";
+            }
+        }
+
+        list logical-interface {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type logicalInterfaceRef;
+            }
+        }
+
+        list hardware-inventory {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type hardwareInventoryRef;
+            }
+        }
+
+        list software-inventory {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type softwareInventoryRef;
+            }
+        }
+    }
+
+    list physical-interface {
+        description "Physical interfaces";
+        uses ifmap:Identity;
+        key uuid;
+
+        leaf desc {
+            type string;
+            description "Description";
+        }
+        leaf operationStatus {
+            type string;
+            description "Operation status";
+        }
+        leaf ip {
+            type inet:ip-address;
+            description "IP address";
+        }
+        leaf adminStatus {
+            type string;
+            description "Admin status";
+        }
+        leaf interfaceIndex {
+            type uint32;
+            description "Interface index";
+        }
+        leaf linkLevelType {
+            type string;
+            description "Link level type";
+        }
+        leaf linkType {
+            type string;
+            description "Link type";
+        }
+        leaf speed {
+            type uint32;
+            description "Speed";
+        }
+        leaf speedStr {
+            type string;
+            description "Speed";
+        }
+        leaf mtu {
+            type string;
+            description "MTU";
+        }
+        leaf mtuStr {
+            type string;
+            description "MTU";
+        }
+        leaf physAddr {
+            type string;
+            description "Physical hardware address";
+        }
+
+        // IFMAP 'has' links
+        list logical-interface {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type logicalInterfaceRef;
+            }
+        }
+    }
+
+    list logical-interface {
+        description "Logical interfaces";
+        uses ifmap:Identity;
+        key uuid;
+
+        leaf ip {
+            type inet:ip-address;
+            description "IP address";
+        }
+        leaf desc {
+            type string;
+            description "Description";
+        }
+        leaf encaptulation {
+            type encaptulationEnum;
+            description "Encaptulation";
+        }
+
+        choice vlan {
+            case vlanId {
+                leaf vlandId {
+                    type string;
+                    description "VLAN ID";
+                }
+            }
+            case vlanIdRange {
+                leaf vlanIdRange {
+                    type string;
+                    description "VLAN ID range";
+                }
+            }
+            case vlanTagInnerRange {
+                leaf vlanTagInnerRange {
+                    type string;
+                    description "VLAN tag inner range";
+                }
+            }
+            case vlanTagsOuter {
+                leaf vlanTagsOuter {
+                    type string;
+                    description "VLAN tag outer";
+                }
+            }
+            case vlanTagsInner {
+                leaf vlanTagsInner {
+                    type string;
+                    description "VLAN tag inner";
+                }
+            }
+            case vlanMembers {
+                leaf-list vlanMembers {
+                    type string;
+                    description "VLAN members";
+                }
+            }
+        }
+    }
+
+    list hardware-inventory {
+        uses ifmap:Identity;
+        key uuid;
+
+        leaf parentUuid {
+            type yang:uuid;
+            description "Inventory Parent ID";
+        }
+        leaf partitionUuid {
+            type yang:uuid;
+            description "Partition ID";
+        }
+        leaf installedDescription {
+            type string;
+            description "Installed Description";
+        }
+        leaf installedEquipmentObjectType {
+            type string;
+            description "Model number; Model-number in DMI";
+        }
+        leaf installedModel {
+            type string;
+            description "Model in DMI";
+        }
+        leaf installedPartNumber {
+            type string;
+            description "Part-number in DMI";
+        }
+        leaf installedSerialNumber {
+            type string;
+            description "Serial-number in DMI";
+        }
+        leaf installedVersion {
+            type string;
+            description "Revision; Part-version in DMI";
+        }
+        leaf manufacturer {
+            type string;
+            description "Inventory Manufacturer";
+        }
+        leaf path {
+            type string;
+            description "Inventory Path";
+        }
+        leaf status {
+            //EquipmentAdditionalInfoEntity status
+            type string;
+            description "Inventory status";
+        }
+
+        leaf holderState {
+            type holderStateEnum;
+            description "Inventory holder state";
+        }
+        leaf holderType {
+            type holderTypeEnum;
+            description "Inventory Holder type";
+        }
+        leaf ordinal {
+            type uint32;
+            description "keep track of l2circuitNeighbors order when importing device";
+        }
+
+        // IFMAP 'has' links
+        list physical-interface {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type physicalInterfaceRef;
+            }
+        }
+    }
+
+    list software-inventory {
+        description "Software inventory";
+        uses ifmap:Identity;
+        key uuid;
+
+        leaf majorVersion {
+            type uint32;
+            description "Major version";
+        }
+        leaf minorVersion {
+            type uint32;
+            description "Minor version";
+        }
+        leaf revisionNumber {
+            type uint32;
+            description "Revision number";
+        }
+        leaf deviceFamily {
+            type string;
+            description "Device family";
+        }
+        leaf description {
+            type string;
+            description "Software description";
+        }
+        leaf buildNumber {
+            type uint32;
+            description "Build number";
+        }
+        leaf classification {
+            type string;
+            description "Classification type";
+        }
+        leaf softwareRelease {
+            type string;
+            description "Software release";
+        }
+        leaf re {
+            type string;
+            description "Re";
+        }
+        leaf productModel {
+            type string;
+            description "Produce model";
+        }
+    }
+
+    typedef deviceIdRef {
+        type leafref {
+            path "/device/uuid";
+        }
+    }
+
+    typedef physicalInterfaceRef {
+        type leafref {
+            path "/physical-interface/uuid";
+        }
+    }
+    typedef softwareInventoryRef {
+        type leafref {
+            path "/software-inventory/uuid";
+        }
+    }
+    typedef hardwareInventoryRef {
+        type leafref {
+            path "/hardware-inventory/uuid";
+        }
+    }
+    typedef logicalInterfaceRef {
+        type leafref {
+            path "/logical-interface/uuid";
+        }
+    }
+    typedef lsysTypeEnum {
+        type enumeration {
+            enum LSYSROOT {
+                description "LSYS Root";
+            }
+            enum LSYS {
+                description "LSYS";
+            }
+        }
+    }
+
+    typedef redundancyStatusEnum {
+        description "";
+        type enumeration {
+            enum PRIMARY {
+                description "Primary";
+            }
+            enum SECONDARY {
+                description "Secondary";
+            }
+        }
+    }
+
+    typedef deviceConfigStatusEnum {
+        description "";
+        type enumeration {
+            enum CONNECTING {
+                description "Connecting";
+            }
+            enum IN_SYNC {
+                description "In Sync";
+            }
+            enum NONE {
+                description "None";
+            }
+            enum OUT_OF_SYNC {
+                description "Out of sync";
+            }
+            enum SYNC_FAILED {
+                description "Sync failed";
+            }
+            enum SYNCHRONIZING {
+                description "Synchronizing";
+            }
+            enum MODELED {
+                description "Modeled";
+            }
+            enum IN_RMA {
+                description "In RMA";
+            }
+            enum RMA_REACTIVATING {
+                description "Reactivating";
+            }
+            enum RMA_REACTIVATING_FAILED {
+                description "Reactivate Failed";
+            }
+            enum SSOR_UNDEF {
+                description "Undefined";
+            }
+            enum SSOR_UNKNOWN {
+                description "Unknown";
+            }
+            enum SSOR_IN_SYNC {
+                description "In sync";
+            }
+            enum SSOR_SPACE_CHANGED {
+                description "Space Changed";
+            }
+            enum SSOR_DEVICE_CHANGED {
+                description "Device Changed";
+            }
+            enum SSOR_BOTH_CHANGED {
+                description "Space & Device Changed";
+            }
+            enum UNMANAGED {
+                description "Unmanaged";
+            }
+        }
+    }
+
+    typedef candidateConfigStateEnum {
+        type enumeration {
+            enum APPROVED {
+                description "";
+            }
+        }
+    }
+
+    typedef connectionTypeEnum {
+        type enumeration {
+            enum UNKNOWN {
+                description "Unknown";
+            }
+            enum REACHABLE {
+                description "Reachable device initiated";
+            }
+            enum UNREACHABLE {
+                description "Unreachable device initiated";
+            }
+            enum MODELED {
+                description "Modeled";
+            }
+            enum MASTERBULK {
+                description "Bulked master";
+            }
+            enum APPINIT {
+                description "Junos Space initiated";
+            }
+            enum APPINITADAPTED {
+                description "Junos Space initiated adapted";
+            }
+        }
+    }
+
+    typedef authEnum {
+        type enumeration {
+            enum RSA_KEY {
+                description "Key based";
+            }
+            enum CREDENTIAL {
+                description "Credential based";
+            }
+            enum KEY_CONFLICT {
+                description "Key conflict";
+            }
+            enum NOT_AVAILABLE {
+                description "NA";
+            }
+        }
+    }
+
+    typedef connectionStatusEnum {
+        type enumeration {
+            enum UP {
+                description "Up";
+            }
+            enum DOWN {
+                description "Down";
+            }
+            enum NA {
+                value -1;
+                description "NA";
+            }
+        }
+    }
+
+    typedef encaptulationEnum {
+        type enumeration {
+            enum NONE;
+            enum DIX;
+            enum VLAN_BRIDGE;
+            enum VLAN_CCC;
+            enum VLAN_TCC;
+            enum VLAN_VPLS;
+            enum ATM_CCC_CELL_RELAY;
+            enum ATM_CCC_VC_MUX;
+            enum ATM_CISCO_NLPID;
+            enum ATM_MLPPP_LLC;
+            enum ATM_NLPID;
+            enum ATM_PPP_LLC;
+            enum ATM_PPP_VC_MUX;
+            enum ATM_SNAP;
+            enum ATM_TCC_SNAP;
+            enum ATM_TCC_VC_MUX;
+            enum ATM_VC_MUX;
+            enum ETHER_OVER_ATM_LLC;
+            enum ETHER_VPLS_OVER_ATM_LLC;
+            enum ETHER_VPLS_OVER_FR;
+            enum ETHER_VPLS_OVER_PPP;
+            enum ETHERNET;
+            enum FRAME_REPLAY_CCC;
+            enum FRAME_RELAY_ETHER_TYPE;
+            enum FRAME_RELAY_ETHER_TYPE_TCC;
+            enum FRAME_RELAY_PPP;
+            enum FRAME_RELAY_TCC;
+            enum MULTILINK_FRAME_RELAY_END_TO_END;
+            enum MULTILINK_PPP;
+            enum PPP_OVER_ETHER;
+            enum PPP_OVER_ETHER_OVER_ATM_LLC;
+            enum VLAN_VCI_CCC;
+        }
+    }
+
+    typedef holderStateEnum {
+        type enumeration {
+            enum EMPTY;
+            enum INSTALLED_AND_EXPECTED;
+            enum EXPECTED_AND_NOT_INSTALLED;
+            enum INSTALLED_AND_NOT_EXPECTED;
+            enum MISMATCH_OF_INSTALLED_AND_EXPECTED;
+            enum UNAVAILABLE;
+            enum UNKNOWN;
+        }
+    }
+
+    typedef holderTypeEnum {
+        type enumeration {
+            enum RACK;
+            enum SHELF;
+            enum SUB_SHELF;
+            enum BAY;
+            enum SLOT;
+            enum SUBSLOT;
+            enum PORT;
+            enum REMOTE_UNIT;
+            enum REMOTE_SUBSLOT;
+        }
+    }
+}

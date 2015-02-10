@@ -1,0 +1,82 @@
+submodule template-management {
+    yang-version 1;
+    belongs-to "jspace" {
+        prefix "jspace";
+    }
+    //  import ietf-inet-types { prefix "inet"; }
+    import ietf-yang-types { prefix "yang"; }
+    import iq-ifmap-types { prefix "ifmap"; }
+    include device-management;
+    contact "JUNOS Space <jspace@juniper.net>";
+    organization "Juniper Networks";
+    description "YANG definition for the template-management";
+    revision "2015-02-05" {
+        description "Initial revision";
+    }
+
+    list template {
+        description "Device template";
+        uses ifmap:Identity;
+        key uuid;
+        leaf description {
+            type string;
+            description "Description";
+        }
+        leaf lastUpdatedBy {
+            type uint32;
+            description "Last updated by";
+        }
+        leaf displayState {
+            type uint32;
+            description "Display state";
+        }
+        leaf lastUploadTime {
+            type yang:timestamp;
+            description "last upload time";
+        }
+        leaf configType {
+            type configTypeEnum;
+            description "Config type";
+        }
+
+        list device {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type deviceIdRef;
+            }
+
+            leaf deploymentStatus {
+                type string;
+                description "Deployment Status";
+            }
+        }
+    }
+
+    augment "/device" {
+        list template {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type templateIdRef;
+            }
+            leaf deploymentStatus {
+                type string;
+                description "Deployment Status";
+            }
+        }
+    }
+
+    typedef configTypeEnum {
+        type enumeration {
+            enum PRIMARY {
+                description "Primary";
+            }
+        }
+    }
+    typedef templateIdRef {
+        type leafref {
+            path "/template/uuid";
+        }
+    }
+}

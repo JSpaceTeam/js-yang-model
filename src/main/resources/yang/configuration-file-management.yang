@@ -1,0 +1,21 @@
+submodule configuration-file-management {
+    yang-version 1;
+    belongs-to "jspace" {
+        prefix "jspace";
+    }
+    //  import ietf-inet-types { prefix "inet"; }
+    //  import ietf-yang-types { prefix "yang"; }
+    import iq-ifmap-types { prefix "ifmap"; }
+    contact "JUNOS Space <jspace@juniper.net>";
+    organization "Juniper Networks";
+    description "YANG definition for the configuration-file-management";
+    revision "2015-02-05" {
+        description "Initial revision";
+    }
+
+    list configuration-file {
+        description "configuration file";
+        uses ifmap:Identity;
+        key uuid;
+    }
+}

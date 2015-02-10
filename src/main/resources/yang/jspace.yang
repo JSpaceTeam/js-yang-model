@@ -1,0 +1,22 @@
+module jspace {
+    yang-version 1;
+    namespace "http://www.juniper.net/ns/vnc";
+    prefix "jspace";
+
+    include configlet-management;
+    include configuration-file-management;
+    include device-management;
+    include image-management;
+    include script-management;
+    include template-management;
+
+    contact "JUNOS Space <jspace@juniper.net>";
+
+    organization "Juniper Networks";
+
+    description "YANG version for the device-management";
+
+    revision "2015-02-05" {
+        description "Initial revision";
+    }
+}

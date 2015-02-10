@@ -1,0 +1,129 @@
+module iq-ifmap-types {
+    yang-version 1;
+    namespace "http://www.juniper.net/ns/iq/ifmap";
+    prefix "ifmap";
+    
+    import iq-common-types {
+        prefix common;
+    }
+    
+    import iq-acm-types {
+        prefix acm;
+    }
+    
+    import ietf-yang-types {
+        prefix yang;                // RFC 6021
+    }
+
+    import ietf-inet-types {
+        prefix inet;
+    }
+
+    organization "Juniper Networks";
+
+    description
+       "This module contains a collection of YANG data types that 
+        encaptulate the JUNOS IQ IF-MAP based data model semantics.
+    
+        Copyright (c) 2014 Juniper Networks Inc identified as
+        authors of the code.  All rights reserved.";
+
+    revision 2014-12-05 {
+        description "Initial draft";
+    }
+
+    grouping IdentityPermission {
+        description "Identity node permission";
+        
+        container permissions { uses acm:Permission; }
+        container uuid { uses common:Uuid; }
+        leaf enable { type boolean; }
+        leaf created { type yang:date-and-time; }
+        leaf last-modified { type yang:date-and-time; }
+        leaf description { type string; }
+        leaf user-visible { type boolean; }
+    }
+    
+    grouping Identity {
+        description "IF-MAP identity base type";
+        
+        leaf administrative-domain { type string; }
+        leaf name { type string; }
+        leaf type {
+            type enumeration {
+                enum aik-name;
+                enum distinguished-name;
+                enum dns-name;
+                enum email-address;
+                enum hip-hit;
+                enum kerberos-principal;
+                enum username;
+                enum sip-uri;
+                enum tel-uri;
+                enum other;
+            }
+        }
+        leaf other-definition { type string; }
+        
+        // Extensions
+        leaf-list fq-name { 
+            description "FQDN for the IFMAP identity"; 
+            type string; 
+        }
+        leaf uuid { 
+            description "UUID for the IFMAP identity"; 
+            type yang:uuid; 
+        }
+        leaf href { 
+            description "HATEOAS HREF for the identity node"; 
+            type inet:uri; 
+        }
+        leaf parent-uuid { 
+            description "parent node UUID"; 
+            type yang:uuid; 
+        }
+        leaf parent-href { 
+            description "parent node HATEOAS HREF"; 
+            type inet:uri; 
+        }
+        leaf parent-type { 
+            description "parent node type"; 
+            type string; 
+        }
+        leaf display-name { 
+            description "Display name"; 
+            type string; 
+        }
+        container id-perms { 
+            description "identity RBAC permission"; 
+            uses IdentityPermission; 
+        }
+    }
+    
+    grouping HasLink {
+        description "Maker grouping to mark a YANG container node as IFMAP 'has' link";
+
+        leaf type { 
+            description "destination node type"; 
+            type string; 
+        }
+        leaf href { 
+            description "HATEOAS HREF for the destination node"; 
+            type inet:uri; 
+        }
+    }
+    
+    grouping RefLink {
+        description "Maker grouping to mark a YANG container node as IFMAP 'ref' link";
+
+        leaf type { 
+            description "destination node type"; 
+            type string; 
+        }
+        leaf href { 
+            description "HATEOAS HREF for the destination node"; 
+            type inet:uri; 
+        }
+    }    
+    
+}

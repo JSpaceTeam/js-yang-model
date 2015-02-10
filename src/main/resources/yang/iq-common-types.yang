@@ -1,0 +1,24 @@
+module iq-common-types {
+    yang-version 1;
+    namespace "http://www.juniper.net/ns/iq/common";
+    prefix "common";
+    
+    organization "Juniper Networks";
+
+    description
+       "This module contains a collection of common YANG data types 
+    
+        Copyright (c) 2014 Juniper Networks Inc identified as
+        authors of the code.  All rights reserved.";
+
+    revision 2014-12-05 {
+        description "Initial draft";
+    }
+
+    grouping Uuid {
+        description "UUID generated according to RFC-4122";
+        leaf uuid-mslong { type uint64; }
+        leaf uuid-lslong { type uint64; }
+    }
+
+}

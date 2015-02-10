@@ -1,0 +1,112 @@
+submodule image-management {
+    yang-version 1;
+    belongs-to "jspace" {
+        prefix "jspace";
+    }
+    //    import ietf-inet-types { prefix "inet"; }
+    import ietf-yang-types { prefix "yang"; }
+    import iq-ifmap-types { prefix "ifmap"; }
+    include device-management;
+    contact "JUNOS Space <jspace@juniper.net>";
+    organization "Juniper Networks";
+    description "YANG definition for the image-management";
+    revision "2015-02-05" {
+        description "Initial revision";
+    }
+
+    list image {
+        description "image";
+        uses ifmap:Identity;
+        key uuid;
+
+        leaf decodeCompletionStatus {
+            type string;
+            description "Decode completion status";
+        }
+        leaf imageFileMD5 {
+            type string;
+            description "image file md5";
+        }
+        leaf imageFileName {
+            type string;
+            description "Image file name";
+        }
+        leaf imageFilePath {
+            type string;
+            description "Image file path";
+        }
+        leaf imageSize {
+            type uint32;
+            description "Image size";
+        }
+        leaf imageVersion {
+            type string;
+            description "Image version";
+        }
+        leaf series {
+            type string;
+            description "";
+        }
+        leaf supportedPlatforms {
+            type string;
+            description "Supported platforms";
+        }
+        leaf supportedSeries {
+            type string;
+            description "Supported series";
+        }
+        leaf uploadStatus {
+            type uint32;
+            description "Uploaded status";
+        }
+        leaf uploadedTime {
+            type uint32;
+            description "Uploaded time";
+        }
+        leaf userNotes {
+            type string;
+            description "UserNotes";
+        }
+
+        list device {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type deviceIdRef;
+            }
+            uses device-image-link;
+        }
+    }
+
+    augment "/device" {
+
+        list image {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type imageIdRef;
+            }
+            uses device-image-link;
+        }
+    }
+
+    grouping device-image-link {
+        leaf stagedTime {
+            type yang:timestamp;
+            description "TimeStamp";
+        }
+        leaf checksumTime {
+            type yang:timestamp;
+            description "TimeStamp";
+        }
+        leaf checksumStatus {
+            type string;
+        }
+    }
+
+    typedef imageIdRef {
+        type leafref {
+            path "/image/uuid";
+        }
+    }
+}

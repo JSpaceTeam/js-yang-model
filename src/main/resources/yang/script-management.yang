@@ -1,0 +1,67 @@
+submodule script-management {
+    yang-version 1;
+    belongs-to "jspace" {
+        prefix "jspace";
+    }
+    //  import ietf-inet-types { prefix "inet"; }
+    // import ietf-yang-types { prefix "yang"; }
+    import iq-ifmap-types { prefix "ifmap"; }
+    include device-management;
+    contact "JUNOS Space <jspace@juniper.net>";
+    organization "Juniper Networks";
+    description "YANG definition for the script-management";
+    revision "2015-02-05" {
+        description "Initial revision";
+    }
+
+    list script {
+        description "Script ";
+        uses ifmap:Identity;
+        key uuid;
+
+        list device {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type scriptIdRef;
+            }
+        }
+    }
+
+    list operation {
+        description "Associated script";
+        uses ifmap:Identity;
+        key uuid;
+
+        list device {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type scriptIdRef;
+            }
+        }
+    }
+
+    augment "/device" {
+        list script {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type scriptIdRef;
+            }
+        }
+        list script-execution-history {
+            uses ifmap:HasLink;
+            key to;
+            leaf to {
+                type scriptIdRef;
+            }
+        }
+    }
+
+    typedef scriptIdRef {
+        type leafref {
+            path "/script/uuid";
+        }
+    }
+}

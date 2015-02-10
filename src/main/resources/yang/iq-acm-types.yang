@@ -1,0 +1,32 @@
+module iq-acm-types {
+    yang-version 1;
+    namespace "http://www.juniper.net/ns/iq/acm";
+    prefix "acm";
+    
+    organization "Juniper Networks";
+
+    description
+       "This module contains a collection of YANG data types that 
+        encaptulate the JUNOS IQ access control model.
+    
+        Copyright (c) 2014 Juniper Networks Inc identified as
+        authors of the code.  All rights reserved.";
+
+    revision 2014-12-05 {
+        description "Initial draft";
+    }
+
+    typedef Access {
+        description "Unix alike access notation: rwx";
+        type uint8 { range "0 .. 7"; }
+    }
+    
+    grouping Permission {
+        description "Unix alike permission";  
+        leaf owner { type string; }
+        leaf owner-access { type Access; }
+        leaf group { type string; }
+        leaf group-access { type Access; }
+        leaf other-access { type Access; }     
+    }
+}
