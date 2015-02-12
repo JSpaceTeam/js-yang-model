@@ -14,6 +14,8 @@ publishMavenStyle := true
 
 publishTo := Some(Resolver.file("file",  new File(System.getProperty("user.home") + "/mavenrepo/release")))
 
+resolvers += "Local Maven Repository" at "file://" + Path.userHome.absolutePath + "/mavenrepo/release"
+
 resolvers += "JSpace Maven Repo" at "http://10.155.87.253:8080/mavenrepo/release"
 
 val sprayV = "1.3.2"
@@ -25,8 +27,7 @@ libraryDependencies ++= Seq(
   "io.spray"            %%  "spray-can"            % sprayV                   withSources(),
   "io.spray"            %%  "spray-routing"        % sprayV                   withSources(),
   "io.spray"            %%  "spray-client"         % sprayV                   withSources(),
-  "io.spray"            %%  "spray-json"           % spray_jsonV              withSources(),
-  "net.juniper"         %%  "easy-rest-core"       % "0.1.9"                  withSources()
+  "io.spray"            %%  "spray-json"           % spray_jsonV              withSources()
 )
 
 YangPlugin.yangSettings
