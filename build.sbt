@@ -27,7 +27,8 @@ libraryDependencies ++= Seq(
   "io.spray"            %%  "spray-can"            % sprayV                   withSources(),
   "io.spray"            %%  "spray-routing"        % sprayV                   withSources(),
   "io.spray"            %%  "spray-client"         % sprayV                   withSources(),
-  "io.spray"            %%  "spray-json"           % spray_jsonV              withSources()
+  "io.spray"            %%  "spray-json"           % spray_jsonV              withSources(),
+  "net.juniper"         %%  "easy-rest-core"       % "0.1.9"                  withSources()
 )
 
 YangPlugin.yangSettings
