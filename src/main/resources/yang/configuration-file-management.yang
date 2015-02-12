@@ -1,7 +1,7 @@
 submodule configuration-file-management {
     yang-version 1;
-    belongs-to "jspace" {
-        prefix "jspace";
+    belongs-to "common-module" {
+        prefix "common-module";
     }
     //  import ietf-inet-types { prefix "inet"; }
     //  import ietf-yang-types { prefix "yang"; }
