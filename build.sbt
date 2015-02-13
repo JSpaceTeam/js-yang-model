@@ -23,12 +23,12 @@ val sprayV = "1.3.2"
 val spray_jsonV = "1.2.6"
 
 libraryDependencies ++= Seq(
-  "net.juniper"         %   "jnc-library"          % "0.1.9"                  withSources(),
+  "net.juniper"         %   "jnc-library"          % "0.3.0"                  withSources(),
   "io.spray"            %%  "spray-can"            % sprayV                   withSources(),
   "io.spray"            %%  "spray-routing"        % sprayV                   withSources(),
   "io.spray"            %%  "spray-client"         % sprayV                   withSources(),
   "io.spray"            %%  "spray-json"           % spray_jsonV              withSources(),
-  "net.juniper"         %%  "easy-rest-core"       % "0.1.9"                  withSources()
+  "net.juniper"         %%  "easy-rest-core"       % "0.3.0"                  withSources()
 )
 
 YangPlugin.yangSettings

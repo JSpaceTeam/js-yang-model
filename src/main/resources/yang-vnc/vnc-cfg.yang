@@ -1,0 +1,179 @@
+module vnc-cfg {
+    yang-version 1;
+    namespace "http://www.juniper.net/ns/vnc";
+
+    prefix "vnc";
+
+    import ietf-inet-types {
+        prefix inet;                // RFC 6991
+    }
+    
+    import iq-acm-types {
+        prefix acm;
+    }
+    
+    import iq-ifmap-types {
+        prefix ifmap;
+    }
+    
+    organization "Juniper Networks";
+
+    description "YANG version of data model defined in https://github.com/Juniper/contrail-controller/blob/master/src/schema/vnc_cfg.xsd";
+
+    revision 2014-11-22 {
+        description "Initial version";
+    }
+
+    //--------------------typedefs and groupings----------------------
+    grouping ApiAccessList {
+        list api-access {
+            key api-name;
+            
+            leaf api-name { type string; mandatory true; }
+
+            container permissions {
+                uses acm:Permission;
+            }
+        }
+    }
+    
+    grouping Subnet {
+        leaf ip-prefix { type string; }
+        leaf ip-prefix-len { type int32; }
+    }
+    
+    //--------------------YANG nodes----------------------
+    
+    container config-root {
+        uses ifmap:Identity;
+        
+        // IFMAP properties
+        container api-access-list { uses ApiAccessList; }
+        
+        // IFMAP 'has' links
+        list global-system-configs { uses ifmap:HasLink; key uuid; }
+        list domains { uses ifmap:HasLink; key uuid; }
+    }
+    
+    list global-system-config {
+        uses ifmap:Identity;
+        key uuid;
+
+        // IFMAP properties
+        leaf autonomous-system { 
+            type int32 { range "1 .. 65534"; } 
+        }
+        leaf config-version { type string; }        
+        container plugin-tuning {
+            list plugin-property {
+                key property;
+                leaf property { type string; }
+                leaf value { type string; }
+            }
+        
+        }
+        leaf ibgp-auto-mesh { type boolean; }
+        
+        // IFMAP 'has' links
+        list global-vrouter-configs { uses ifmap:HasLink; key uuid; }
+        list physical-routers { uses ifmap:HasLink; key uuid; }
+        list virtual-routers { uses ifmap:HasLink; key uuid;}
+    }
+    
+    list domain {
+        uses ifmap:Identity;
+        key uuid;
+        
+        // IFMAP properties
+        container api-access-list { uses ApiAccessList; }
+        container domain-limits {
+            leaf project-limits { type int32; }
+            leaf virtual-network-limits { type int32; }
+            leaf security-group-limits { type int32; }
+        }
+
+        // IFMAP 'has' links
+        list projects { uses ifmap:HasLink; key uuid; }
+        list service-templates { uses ifmap:HasLink; key uuid; }
+        list namespaces { uses ifmap:HasLink; key uuid;}
+        list virtual-dns { uses ifmap:HasLink; key uuid;}
+    }
+    
+    list project {
+        uses ifmap:Identity;
+        key uuid;
+        
+        // IFMAP properties
+        container quota {
+            leaf defaults { type int32; }
+            leaf floating-ip { type int32; }
+            leaf instance-ip { type int32; }
+            leaf virtual-machine-interface { type int32; }
+            leaf virtual-network { type int32; }
+            leaf virtual-router { type int32; }
+            leaf virtual-DNS { type int32; }
+            leaf virtual-DNS-record { type int32; }
+            leaf bgp-router { type int32; }
+            leaf network-ipam { type int32; }
+            leaf access-control-list { type int32; }
+            leaf floating-ip-pool { type int32; }
+            leaf service-template { type int32; }
+            leaf service-instance { type int32; }
+            leaf logical-router { type int32; }
+            leaf security-group { type int32; }
+            leaf security-group-rule { type int32; }
+            leaf subnet { type int32; }
+            leaf global-vrouter-config { type int32; }
+        }
+        
+        // IFMAP 'has' links
+        list virtual-machine-interfaces { uses ifmap:HasLink; key uuid; }
+        list security-groups { uses ifmap:HasLink; key uuid; }
+        list logical-routers { uses ifmap:HasLink; key uuid; }
+        list virtual-networks { uses ifmap:HasLink; key uuid; }
+        list network-ipams { uses ifmap:HasLink; key uuid; }
+        list network-policies { uses ifmap:HasLink; key uuid; }
+        list interface-routing-tables { uses ifmap:HasLink; key uuid; }
+        list route-tables { uses ifmap:HasLink; key uuid; }
+        list service-instances { uses ifmap:HasLink; key uuid; }
+
+        // IFMAP 'ref' links
+        list namespace-refs {
+            uses ifmap:RefLink; 
+            key uuid;
+            
+            // IFMAP properties
+            container attr { uses Subnet; }
+        }
+        list floating-ip-pools { uses ifmap:RefLink; key uuid; }
+    }
+
+    list namespace {
+        uses ifmap:Identity;
+        key uuid;
+        
+        // IFMAP properties
+        container namespace-cidr { uses Subnet; }
+    }
+        
+    list physical-router {
+        uses ifmap:Identity;
+        key uuid;
+        
+        // IFMAP properties
+        leaf management-ip { type inet:ip-address; }
+        leaf dataplane-ip { type inet:ip-address; }
+        leaf vendor-name { type string; }
+        container user-credentials {
+            leaf username { type string; }
+            leaf password { type string; }
+        }
+        
+        // IFMAP 'has' links
+        list logical-interfaces { uses ifmap:HasLink; key uuid; }
+        list physical-interfaces { uses ifmap:HasLink; key uuid; }
+
+        // IFMAP 'ref' links
+        list virtual-router-refs { uses ifmap:RefLink; key uuid; }
+    }     
+}    
