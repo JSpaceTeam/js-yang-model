@@ -1,7 +1,7 @@
-module jspace {
+module common-module {
     yang-version 1;
     namespace "http://www.juniper.net/ns/vnc";
-    prefix "jspace";
+    prefix "common-module";
 
     include configlet-management;
     include configuration-file-management;

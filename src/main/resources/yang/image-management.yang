@@ -1,7 +1,7 @@
 submodule image-management {
     yang-version 1;
-    belongs-to "jspace" {
-        prefix "jspace";
+    belongs-to "common-module" {
+        prefix "common-module";
     }
     //    import ietf-inet-types { prefix "inet"; }
     import ietf-yang-types { prefix "yang"; }
@@ -19,27 +19,27 @@ submodule image-management {
         uses ifmap:Identity;
         key uuid;
 
-        leaf decodeCompletionStatus {
+        leaf decode-completion-status {
             type string;
             description "Decode completion status";
         }
-        leaf imageFileMD5 {
+        leaf image-file-md5 {
             type string;
             description "image file md5";
         }
-        leaf imageFileName {
+        leaf image-file-name {
             type string;
             description "Image file name";
         }
-        leaf imageFilePath {
+        leaf image-file-path {
             type string;
             description "Image file path";
         }
-        leaf imageSize {
+        leaf image-size {
             type uint32;
             description "Image size";
         }
-        leaf imageVersion {
+        leaf image-version {
             type string;
             description "Image version";
         }
@@ -47,23 +47,23 @@ submodule image-management {
             type string;
             description "";
         }
-        leaf supportedPlatforms {
+        leaf supported-platforms {
             type string;
             description "Supported platforms";
         }
-        leaf supportedSeries {
+        leaf supported-series {
             type string;
             description "Supported series";
         }
-        leaf uploadStatus {
+        leaf upload-status {
             type uint32;
             description "Uploaded status";
         }
-        leaf uploadedTime {
+        leaf uploaded-time {
             type uint32;
             description "Uploaded time";
         }
-        leaf userNotes {
+        leaf user-notes {
             type string;
             description "UserNotes";
         }

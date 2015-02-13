@@ -1,7 +1,7 @@
 submodule device-management {
     yang-version 1;
-    belongs-to "jspace" {
-        prefix "jspace";
+    belongs-to "common-module" {
+        prefix "common-module";
     }
 
     import ietf-inet-types { prefix "inet"; }
@@ -19,7 +19,7 @@ submodule device-management {
         uses ifmap:Identity;
         key uuid;
 
-        leaf deviceType {
+        leaf device-type {
             type string;
             config false;
             description "Device type";
@@ -48,7 +48,7 @@ submodule device-management {
                 type string;
                 description "Device family";
             }
-            leaf osVersion {
+            leaf os-version {
                 type string;
                 description "OS version";
             }
@@ -56,7 +56,7 @@ submodule device-management {
                 type string;
                 description "Serial Number";
             }
-            leaf lastRebootTime {
+            leaf last-reboot-time {
                 type yang:timestamp;
                 description "Last reboot timestamp";
             }
@@ -66,7 +66,7 @@ submodule device-management {
         container lsys-info {
             description "LSYS Info";
 
-            choice lsysType {
+            choice lsys-type {
                 description "Supported LSYS types";
                 config false;
                 default none;
@@ -78,8 +78,8 @@ submodule device-management {
                                                 member";
                     }
                 }
-                case lsysMembers {
-                    container lsysMembers {
+                case lsys-members {
+                    container lsys-members {
                         list lsys {
                             description "member LSYS devices with current device as the LSYS root device";
                             key "uuid";
@@ -95,8 +95,8 @@ submodule device-management {
                         }
                     }
                 }
-                case lsysRoot {
-                    container lsysRoot {
+                case lsys-root {
+                    container lsys-root {
                         description "LSYS root info for current LSYS member";
 
                         leaf uuid {
@@ -115,7 +115,7 @@ submodule device-management {
         container redundancy {
             description "Redundancy info";
 
-            leaf masterRE {
+            leaf master-re {
                 type string;
                 description "Master RE name";
             }
@@ -143,15 +143,15 @@ submodule device-management {
         container config-info {
             description "Configuration info";
 
-            leaf schemaVersion {
+            leaf schema-version {
                 type string;
                 description "Schema version";
             }
-            leaf configStatus {
+            leaf config-status {
                 type deviceConfigStatusEnum;
                 description "Config Status";
             }
-            leaf candidateConfigState {
+            leaf candidate-config-state {
                 type candidateConfigStateEnum;
                 description "Candidate Config State";
             }
@@ -172,7 +172,7 @@ submodule device-management {
                 type connectionStatusEnum;
                 description "Device connection status";
             }
-            leaf webMgt {
+            leaf web-mgt {
                 type boolean;
                 description "Device WebUI enabled";
             }
@@ -182,19 +182,19 @@ submodule device-management {
             description "";
             uses ifmap:Identity;
 
-            leaf configSyncTime {
+            leaf config-sync-time {
                 type yang:timestamp;
             }
-            leaf interfaceXml {
+            leaf interface-xml {
                 type string;
             }
-            leaf rawXml {
+            leaf raw-xml {
                 type string;
             }
-            leaf unresolvedRawxml {
+            leaf unresolved-raw-xml {
                 type string;
             }
-            leaf configXml {
+            leaf config-xml {
                 type string;
             }
         }
@@ -208,35 +208,35 @@ submodule device-management {
                 type string;
                 description "Authors";
             }
-            leaf timeStamp {
+            leaf timestamp {
                 type yang:timestamp;
                 description "TimeStamp";
             }
-            leaf changeXml {
+            leaf change-xml {
                 type string;
                 description "Change XML";
             }
-            leaf negativeChangeXml {
+            leaf negative-change-xml {
                 type string;
                 description "Negative change XML";
             }
-            leaf changeType {
+            leaf change-type {
                 type uint32;
                 description "Change type";
             }
-            leaf commitComment {
+            leaf commit-comment {
                 type string;
                 description "Commit comments";
             }
-            leaf appName {
+            leaf app-name {
                 type string;
                 description "App name";
             }
-            leaf crId {
+            leaf cr-id {
                 type uint32;
                 description "CR ID";
             }
-            leaf processingComments {
+            leaf processing-comments {
                 type string;
                 description "Processing Comments";
             }
@@ -251,35 +251,35 @@ submodule device-management {
                 type string;
                 description "Authors";
             }
-            leaf timeStamp {
+            leaf timestamp {
                 type yang:timestamp;
                 description "TimeStamp";
             }
-            leaf changeXml {
+            leaf change-xml {
                 type string;
                 description "Change XML";
             }
-            leaf negativeChangeXml {
+            leaf negative-change-xml {
                 type string;
                 description "Negative change XML";
             }
-            leaf changeType {
+            leaf change-type {
                 type uint32;
                 description "Change type";
             }
-            leaf commitComment {
+            leaf commit-comment {
                 type string;
                 description "Commit comments";
             }
-            leaf appName {
+            leaf app-name {
                 type string;
                 description "App name";
             }
-            leaf crId {
+            leaf cr-id {
                 type uint32;
                 description "CR ID";
             }
-            leaf processingComments {
+            leaf processing-comments {
                 type string;
                 description "Processing Comments";
             }
@@ -319,7 +319,7 @@ submodule device-management {
             type string;
             description "Description";
         }
-        leaf operationStatus {
+        leaf operation-status {
             type string;
             description "Operation status";
         }
@@ -327,19 +327,19 @@ submodule device-management {
             type inet:ip-address;
             description "IP address";
         }
-        leaf adminStatus {
+        leaf admin-status {
             type string;
             description "Admin status";
         }
-        leaf interfaceIndex {
+        leaf interface-index {
             type uint32;
             description "Interface index";
         }
-        leaf linkLevelType {
+        leaf link-level-type {
             type string;
             description "Link level type";
         }
-        leaf linkType {
+        leaf link-type {
             type string;
             description "Link type";
         }
@@ -347,7 +347,7 @@ submodule device-management {
             type uint32;
             description "Speed";
         }
-        leaf speedStr {
+        leaf speed-str {
             type string;
             description "Speed";
         }
@@ -355,11 +355,11 @@ submodule device-management {
             type string;
             description "MTU";
         }
-        leaf mtuStr {
+        leaf mtu-str {
             type string;
             description "MTU";
         }
-        leaf physAddr {
+        leaf phys-addr {
             type string;
             description "Physical hardware address";
         }
@@ -393,38 +393,38 @@ submodule device-management {
         }
 
         choice vlan {
-            case vlanId {
-                leaf vlandId {
+            case vlan-id {
+                leaf vland-id {
                     type string;
                     description "VLAN ID";
                 }
             }
-            case vlanIdRange {
-                leaf vlanIdRange {
+            case vlan-id-range {
+                leaf vlan-id-range {
                     type string;
                     description "VLAN ID range";
                 }
             }
-            case vlanTagInnerRange {
-                leaf vlanTagInnerRange {
+            case vlan-tag-inner-range {
+                leaf vlan-tag-inner-range {
                     type string;
                     description "VLAN tag inner range";
                 }
             }
-            case vlanTagsOuter {
-                leaf vlanTagsOuter {
+            case vlan-tags-outer {
+                leaf vlan-tags-outer {
                     type string;
                     description "VLAN tag outer";
                 }
             }
-            case vlanTagsInner {
-                leaf vlanTagsInner {
+            case vlan-tags-inner {
+                leaf vlan-tags-inner {
                     type string;
                     description "VLAN tag inner";
                 }
             }
-            case vlanMembers {
-                leaf-list vlanMembers {
+            case vlan-members {
+                leaf-list vlan-members {
                     type string;
                     description "VLAN members";
                 }
@@ -436,35 +436,31 @@ submodule device-management {
         uses ifmap:Identity;
         key uuid;
 
-        leaf parentUuid {
-            type yang:uuid;
-            description "Inventory Parent ID";
-        }
-        leaf partitionUuid {
+        leaf partition-uuid {
             type yang:uuid;
             description "Partition ID";
         }
-        leaf installedDescription {
+        leaf installed-description {
             type string;
             description "Installed Description";
         }
-        leaf installedEquipmentObjectType {
+        leaf installed-equipment-object-type {
             type string;
             description "Model number; Model-number in DMI";
         }
-        leaf installedModel {
+        leaf installed-model {
             type string;
             description "Model in DMI";
         }
-        leaf installedPartNumber {
+        leaf installed-part-number {
             type string;
             description "Part-number in DMI";
         }
-        leaf installedSerialNumber {
+        leaf installed-serial-number {
             type string;
             description "Serial-number in DMI";
         }
-        leaf installedVersion {
+        leaf installed-version {
             type string;
             description "Revision; Part-version in DMI";
         }
@@ -482,11 +478,11 @@ submodule device-management {
             description "Inventory status";
         }
 
-        leaf holderState {
+        leaf holder-state {
             type holderStateEnum;
             description "Inventory holder state";
         }
-        leaf holderType {
+        leaf holder-type {
             type holderTypeEnum;
             description "Inventory Holder type";
         }
@@ -510,19 +506,19 @@ submodule device-management {
         uses ifmap:Identity;
         key uuid;
 
-        leaf majorVersion {
+        leaf major-version {
             type uint32;
             description "Major version";
         }
-        leaf minorVersion {
+        leaf minor-version {
             type uint32;
             description "Minor version";
         }
-        leaf revisionNumber {
+        leaf revision-number {
             type uint32;
             description "Revision number";
         }
-        leaf deviceFamily {
+        leaf device-family {
             type string;
             description "Device family";
         }
@@ -530,7 +526,7 @@ submodule device-management {
             type string;
             description "Software description";
         }
-        leaf buildNumber {
+        leaf build-number {
             type uint32;
             description "Build number";
         }
@@ -538,7 +534,7 @@ submodule device-management {
             type string;
             description "Classification type";
         }
-        leaf softwareRelease {
+        leaf software-release {
             type string;
             description "Software release";
         }
@@ -546,7 +542,7 @@ submodule device-management {
             type string;
             description "Re";
         }
-        leaf productModel {
+        leaf product-model {
             type string;
             description "Produce model";
         }

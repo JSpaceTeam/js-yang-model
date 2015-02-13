@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "io.spray"            %%  "spray-routing"        % sprayV                   withSources(),
   "io.spray"            %%  "spray-client"         % sprayV                   withSources(),
   "io.spray"            %%  "spray-json"           % spray_jsonV              withSources(),
-  "net.juniper"         %%  "easy-rest-core"       % "0.1.9"                  withSources()
+  "net.juniper"         %%  "easy-rest-core"       % "0.2.1"                  withSources()
 )
 
 YangPlugin.yangSettings
@@ -37,4 +37,4 @@ YangPlugin.yangPackageName := Some("net.juniper.yang")
 
 YangPlugin.routesTraitName := Some("CommonModulesAllRoutes")
 
-YangPlugin.yangModelList := Some(Set[String]("jspace.yang"))
+YangPlugin.yangModelList := Some(Set[String]("common-module.yang"))
