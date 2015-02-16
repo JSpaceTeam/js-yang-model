@@ -1,7 +1,7 @@
 submodule template-management {
     yang-version 1;
-    belongs-to "jspace" {
-        prefix "jspace";
+    belongs-to "common-module" {
+        prefix "common-module";
     }
     //  import ietf-inet-types { prefix "inet"; }
     import ietf-yang-types { prefix "yang"; }
@@ -22,19 +22,19 @@ submodule template-management {
             type string;
             description "Description";
         }
-        leaf lastUpdatedBy {
+        leaf last-updated-by {
             type uint32;
             description "Last updated by";
         }
-        leaf displayState {
+        leaf display-state {
             type uint32;
             description "Display state";
         }
-        leaf lastUploadTime {
+        leaf last-upload-time {
             type yang:timestamp;
             description "last upload time";
         }
-        leaf configType {
+        leaf config-type {
             type configTypeEnum;
             description "Config type";
         }
@@ -46,7 +46,7 @@ submodule template-management {
                 type deviceIdRef;
             }
 
-            leaf deploymentStatus {
+            leaf deployment-status {
                 type string;
                 description "Deployment Status";
             }
@@ -60,7 +60,7 @@ submodule template-management {
             leaf to {
                 type templateIdRef;
             }
-            leaf deploymentStatus {
+            leaf deployment-status {
                 type string;
                 description "Deployment Status";
             }

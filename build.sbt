@@ -34,7 +34,3 @@ libraryDependencies ++= Seq(
 YangPlugin.yangSettings
 
 YangPlugin.yangPackageName := Some("net.juniper.yang")
-
-YangPlugin.routesTraitName := Some("CommonModulesAllRoutes")
-
-YangPlugin.yangModelList := Some(Set[String]("jspace.yang"))
