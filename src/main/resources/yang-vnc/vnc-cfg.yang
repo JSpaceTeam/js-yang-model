@@ -56,15 +56,19 @@ module vnc-cfg {
     }
     
     list global-system-config {
-        uses ifmap:Identity;
-        key uuid;
+        uses ifmap:Identity;    // any top level YANG node that uses "ifmap:Identity" can be 
+                                // converted to a Contrail IF-MAP identity which is stored
+                                // as rows in a Cassandra table. 
+        key uuid;   // Key of the YANG list (map to primary key of the Cassandra table)
 
-        // IFMAP properties
-        leaf autonomous-system { 
+        // IFMAP properties (each child node is mapped to a Cassandra column)
+        leaf autonomous-system { // mapped to a Cassandra column "automous-system" with integer value
             type int32 { range "1 .. 65534"; } 
         }
-        leaf config-version { type string; }        
-        container plugin-tuning {
+        leaf config-version { // mapped to a Cassandra column "config-version" with string value
+            type string; 
+        }        
+        container plugin-tuning { // mapped to a Cassandra column "plugin-tuning" with json value
             list plugin-property {
                 key property;
                 leaf property { type string; }
@@ -72,11 +76,15 @@ module vnc-cfg {
             }
         
         }
-        leaf ibgp-auto-mesh { type boolean; }
+        leaf ibgp-auto-mesh { // mapped to a Cassandra column: "ibgp-aut-mesh"
+            type boolean; 
+        }
         
-        // IFMAP 'has' links
-        list global-vrouter-configs { uses ifmap:HasLink; key uuid; }
-        list physical-routers { uses ifmap:HasLink; key uuid; }
+        // IFMAP 'has' links (Eash list entry is stored as Cassandra column
+        list global-vrouter-configs { uses ifmap:HasLink; key uuid; }  
+        list physical-routers { uses ifmap:HasLink; key uuid; } // Each physical-router has-link is stored in a column named 
+                                                                // as "physical-router-<instance uuid>". If there are 100 
+                                                                // physical router links, 100 columns are created.
         list virtual-routers { uses ifmap:HasLink; key uuid;}
     }
     
@@ -142,7 +150,7 @@ module vnc-cfg {
             uses ifmap:RefLink; 
             key uuid;
             
-            // IFMAP properties
+            // IFMAP properties (Both has-link or ref-link can also have its own proerties)
             container attr { uses Subnet; }
         }
         list floating-ip-pools { uses ifmap:RefLink; key uuid; }
