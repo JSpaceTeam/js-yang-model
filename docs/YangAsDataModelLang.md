@@ -36,7 +36,7 @@ There are three types of references
 
     ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/conn_link.png?token=AHghsWfbLbpS3dEnOaMxwPBoR8Pd-rpBks5U96qawA%3D%3D)  
 
-***Property [P]***  
+**Property**  
 * One or more properties can be attached to either Identities or References  
 
     ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/P.png?token=AHghsdtj04JsAyROkdqMmhNvzTTczppDks5U96xwwA%3D%3D)
