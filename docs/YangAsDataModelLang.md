@@ -18,12 +18,14 @@ Here are the basic constructs of IF-MAP based data model:
 * Identities are exposed as REST resources when accessed via REST API  
 ***Reference [R]***  
 There are three types of references  
-* *[Ref]*: Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed. ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/ref_link.png?token=AHghsf_1H4TYcMcznXY80yNblwK5XhAeks5U96eywA%3D%3D)  
-* *[Has]*: Child object can not exist with parent. When parent object is deleted, its linked child objects are deleted. ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/has_link.png?token=AHghsaS822lyJOoHjIrofN67sScz9qcZks5U96o9wA%3D%3D)  
+* *[Ref]*: Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed. ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/ref_link.png?token=AHghsf_1H4TYcMcznXY80yNblwK5XhAeks5U96eywA%3D%3D)
+* *[Has]*: Child object can not exist with parent. When parent object is deleted, its linked child objects are deleted. ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/has_link.png?token=AHghsaS822lyJOoHjIrofN67sScz9qcZks5U96o9wA%3D%3D)
 * *[Conn]*: Weak reference ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/conn_link.png?token=AHghsWfbLbpS3dEnOaMxwPBoR8Pd-rpBks5U96qawA%3D%3D)  
 
 ***Property [P]***  
-* One or more properties can be attached to either Identities or References
+* One or more properties can be attached to either Identities or References![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/P.png?token=AHghsdtj04JsAyROkdqMmhNvzTTczppDks5U96xwwA%3D%3D)
+* Property value can be either of primitive types or nested data structure such as JSON  
+* Properties are mapped to columns of a Cassandra table.
 
 **Common Data Model vs Service Specific Data Model**  
 
