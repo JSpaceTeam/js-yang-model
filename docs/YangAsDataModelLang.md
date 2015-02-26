@@ -12,14 +12,13 @@ Contrail data model follows IF-MAP graph-based data model semantics. Besides the
 
 Here are the basic constructs of IF-MAP based data model:  
 ***Identity [I]***  
-* Node in the IF-MAP data model graph that represents a type of objects
-* Identity can be attached with one or more properties ![]()
-* Each instance of a certain identity is identified by an UUID generated according to RFC-4122
+* Node in the IF-MAP data model graph that represents a type of objects  
+* Identity can be attached with one or more properties ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/I_P.png?token=AHghsbHXgjFY9i669dPzYsmD-NVwmmoJks5U96R1wA%3D%3D)
+* Each instance of a certain identity is identified by an UUID generated according to RFC-4122  
 * Identities are exposed as REST resources when accessed via REST API  
-* 
 ***Reference [R]***  
 There are three types of references
-Reference - Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed
+* Reference: Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed ![]()
 
 
 ***Property [P]***  
