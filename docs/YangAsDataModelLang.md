@@ -51,6 +51,10 @@ Here is an example from Contrail data model:
 
 ###Common Data Model vs Service Specific Data Model###
 
+The common data model is shared by all IQ services. "Shared" means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
+
+An IQ service can have its own private data model, or service specific data model. Each service specific data model has its own namespace. The data model schema of one IQ service may **not** be extended or changed by another IQ service. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store infrastructure for the sevice specific model as the common data model.
+
 ###YANG as Modeling Language for IF-MAP Data Model###
 
 ###Non-CRUD operation###
