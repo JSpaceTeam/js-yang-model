@@ -44,6 +44,10 @@ There are three types of references
 * Property value can be either of primitive types or nested data structure such as JSON  
 * Properties are mapped to columns of a Cassandra table.
 
+Here is an example from Contrail data model:
+
+![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/vnc.png?token=AHghsafVnYTN55DZ0K96jYA2zvKFuSyXks5U97mqwA%3D%3D)
+
 ###Common Data Model vs Service Specific Data Model###
 
 ###YANG as Modeling Language for IF-MAP Data Model###
