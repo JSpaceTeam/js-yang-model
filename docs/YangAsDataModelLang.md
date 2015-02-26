@@ -8,7 +8,7 @@ We have chosen YANG as the primary modeling and API definition language for conf
 This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. 
 
 ###Contrail IF-MAP Data Model Semantics###
-Contrail data model follows IF-MAP graph-based data model semantics. Besides the IF-MAP pub/sub semantics, the data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The code to access this data model in the database, CRUD operations, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the modeling language.
+Contrail data model follows IF-MAP graph-based data model semantics. Data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The code to access this data model in the database, CRUD operations, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the modeling language.
 
 Here are three basic constructs of IF-MAP based data model: Identity, Reference and Property
 
@@ -20,6 +20,7 @@ Here are three basic constructs of IF-MAP based data model: Identity, Reference 
 
 * Each instance of a certain identity is identified by an UUID generated according to RFC-4122  
 * Identities are exposed as REST resources when accessed via REST API
+* Each identity are mapped to a table in Cassandra database.
 
 **Reference**
 
