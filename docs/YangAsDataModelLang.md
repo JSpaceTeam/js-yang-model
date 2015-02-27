@@ -146,43 +146,43 @@ Any top level YANG node that uses grouping "ifmap:Identity" is the definition fo
         uses ifmap:Identity;  // mark the virtual-network as an IF-MAP identity
         key uuid;  
 
-	// IF-MAP properties for the identity
-   	leaf allow-transit { 
-   	    type boolean; 
-   	}
-   	leaf network-id {
-   	    type uint32;
-   	    description "A unique id for the network, auto generated";
-   	}
-   	leaf vxlan-network-identifier {
-   	    type uint32;
-   	    range "0 .. 1048575";
-   	    description "VNI for the network, configured by user";
-   	}
-   	leaf forwarding-mode {
-   	    type enumeration { 
-   	        enum l2_l3;
-   	        enum l2;
-   	    }
-   	    description "Forwarding mode for virtual-network";
-   	}
+        // IF-MAP properties for the identity
+        leaf allow-transit { 
+            type boolean; 
+        }
+        leaf network-id {
+            type uint32;
+            description "A unique id for the network, auto generated";
+        }
+        leaf vxlan-network-identifier {
+            type uint32;
+            range "0 .. 1048575";
+            description "VNI for the network, configured by user";
+        }
+        leaf forwarding-mode {
+            type enumeration { 
+                enum l2_l3;
+                enum l2;
+            }
+            description "Forwarding mode for virtual-network";
+        }
    
-   	// IF-MAP REF links
-   	list network-policy {
-   	    uses ifmap:RefLink;
-   	    key to;
-   	    leaf to {
-   	        type leafref { path "/network-policy/uuid"; }
-   	    }
-   	    
-   	    // IF-MAP property for the link
-   	    container sequence {
-   	        leaf major { type uint32; }
-   	        leaf minor { type uint32; }
-   	    }
+        // IF-MAP REF links
+        list network-policy {
+            uses ifmap:RefLink;
+            key to;
+            leaf to {
+                type leafref { path "/network-policy/uuid"; }
+            }
+            
+            // IF-MAP property for the link
+            container sequence {
+                leaf major { type uint32; }
+                leaf minor { type uint32; }
+            }
             ...
-   	}
-   	...
+        }
+        ...
    }
 ```
 As you can see the key difference from the XSD representation, IF-MAP properties and Links to other identities are inside the identity node.
