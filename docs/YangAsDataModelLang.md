@@ -168,7 +168,7 @@ Any top level YANG node that uses grouping "ifmap:Identity" is the definition fo
         }
    
         // IF-MAP REF links
-        list network-policy {
+        list network-policies {
             uses ifmap:RefLink;
             key to;
             leaf to {
