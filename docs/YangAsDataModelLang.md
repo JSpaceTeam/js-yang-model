@@ -105,7 +105,19 @@ Here is an example of defining properties for the "virtual-network" identity.
          <!-- Forwarding mode for virtual-network  -->
          <xsd:element name="forwarding-mode" type="ForwardingModeType" />
       </xsd:all>
-   </xsd:complexType>
+   </xsd:complexType
+   <xsd:simpleType name="VxlanNetworkIdentifierType">
+      <xsd:restriction base="xsd:integer">
+         <xsd:minInclusive value="0" />
+         <xsd:maxInclusive value="1048575" />
+      </xsd:restriction>
+   </xsd:simpleType>
+   <xsd:simpleType name="ForwardingModeType">
+      <xsd:restriction base="xsd:string">
+         <xsd:enumeration value="l2_l3" />
+         <xsd:enumeration value="l2" />
+      </xsd:restriction>
+   </xsd:simpleType>
 ```
 
 **Link**
@@ -124,7 +136,58 @@ Here is an example of defining a link between virtual-network and network policy
 ```
 
 ###YANG as Modeling Language for IF-MAP Data Model###
-YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to faciliate modularity and enhance the readability of the schema. 
+YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the usability and readability of the schema.
+
+Any top level YANG node that uses grouping "ifmap:Identity" is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses "ifmap:HasLink" or "ifmap:RefLink" is the definition for a property of the identity. 
+```
+    // IF-MAP identity
+    list virtual-network {
+        description "Virutal Network";
+        uses ifmap:Identity;  // mark the virtual-network as an IF-MAP identity
+        key uuid;  
+
+	// IF-MAP properties for the identity
+   	leaf allow-transit { 
+   	    type boolean; 
+   	}
+   	leaf network-id {
+   	    type uint32;
+   	    description "A unique id for the network, auto generated";
+   	}
+   	leaf vxlan-network-identifier {
+   	    type uint32;
+   	    range "0 .. 1048575";
+   	    description "VNI for the network, configured by user";
+   	}
+   	leaf forwarding-mode {
+   	    type enumeration { 
+   	        enum l2_l3;
+   	        enum l2;
+   	    }
+   	    description "Forwarding mode for virtual-network";
+   	}
+   
+   	// IF-MAP REF links
+   	list network-policy {
+   	    uses ifmap:RefLink;
+   	    key to;
+   	    leaf to {
+   	        type leafref { path "/network-policy/uuid"; }
+   	    }
+   	    
+   	    // IF-MAP property for the link
+   	    container sequence {
+   	        leaf major { type uint32; }
+   	        leaf minor { type uint32; }
+   	    }
+            ...
+   	}
+   	...
+   }
+```
+As you can see the key difference from the XSD representation, IF-MAP properties and Links to other identities are inside the identity node.
+
+**Organizing identities into YANG sub-modules**
 
 ###Non-CRUD operation###
 
