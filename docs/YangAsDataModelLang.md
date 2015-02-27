@@ -189,6 +189,83 @@ Any top level YANG node that uses grouping `ifmap:Identity` is the definition fo
 
 **Organizing identities into YANG sub-modules**
 
+When there are large number identities defined in the common data model, it is desirable to group the identities in separate YANG sub-modules. In practice, the sub-modules could be owned by different teams within the company. YANG's augmentation feature makes it handy for one sub-module to extend or augment an identities defined in another sub-module.
+
+We have a top level YANG module `iq-common-data-model` defined in `iq-cdm.yang". This module includes a list of sub-modules. 
+```
+module iq-common-data-model {
+    yang-version 1;
+    namespace "http://www.juniper.net/ns/vnc";
+    prefix "iq-cdm";
+    organization "Juniper Networks";
+    revision "2015-02-05" { description "Initial revision"; }	
+    description "Juniper Common Data Model";
+
+    include inventory-management;
+    include device-management;
+    include image-management;
+    include template-management;
+    ...
+}
+```
+
+Each sub-module defines a set of identities. For example, the `inv-mgt.yang` contains the `inventory-management` sub-module that defines identities such as `device`, `physical-interface`, `logical-interface`, etc. 
+```
+submodule inventory-management {
+    yang-version 1;
+    belongs-to "iq-common-data-model" {
+        prefix "iq-cdm";
+    }
+
+    import ietf-inet-types { prefix "inet"; }
+    import ietf-yang-types { prefix "yang"; }
+    import iq-ifmap-types { prefix "ifmap"; }
+    contact "JUNOS Space <jspace@juniper.net>";
+    organization "Juniper Networks";
+    description "Inventory management";
+    revision "2015-02-05" { description "Initial revision"; }
+
+    list device {
+        description "Networking device";
+        uses ifmap:Identity;
+        key uuid;
+
+	...
+    }
+    
+    ...
+}
+```
+
+Other sub-modules can extend an existing identity defined in a different module via YANG augmentation. In the following example, the `image-management` sub-module extends the `device` by adding a new RefLink to the `image` identity.
+```
+submodule image-management {
+    ...
+    
+    list image {
+        description "Device image";
+        uses ifmap:Identity;
+        key uuid;
+	
+	...
+    }
+
+    augment "/device" {
+        list image {
+            uses ifmap:RefLink; // RefLink from device to image
+            key to;
+            leaf to {
+                type leafref { path "/image/uuid" };
+            }
+            
+            ...
+        }
+    }
+    
+    ...
+}
+```
+
 ###Non-CRUD operation###
 
 ###Data Model Change Notification##
