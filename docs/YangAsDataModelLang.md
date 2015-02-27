@@ -87,6 +87,42 @@ Here is the definition of "ifmap:Identity" from  [ifmap-base-2.0.xsd](https://gi
 		<xsd:attribute name="other-type-definition" type="xsd:string" />
 	</xsd:complexType>
 ```
+
+**Property**
+
+Here is an example of defining properties for the "virtual-network" identity. 
+```
+   <xsd:element name="virtual-network-properties" type="VirtualNetworkType" />
+   <!--#IFMAP-SEMANTICS-IDL Property('virtual-network-properties', 'virtual-network') -->
+
+   <xsd:complexType name="VirtualNetworkType">
+      <xsd:all>
+         <xsd:element name="allow-transit" type="xsd:boolean" />
+         <!-- A unique id for the network, auto generated -->
+         <xsd:element name="network-id" type="xsd:integer" />
+         <!-- VNI for the network, configured by user -->
+         <xsd:element name="vxlan-network-identifier" type="VxlanNetworkIdentifierType" />
+         <!-- Forwarding mode for virtual-network  -->
+         <xsd:element name="forwarding-mode" type="ForwardingModeType" />
+      </xsd:all>
+   </xsd:complexType>
+```
+
+**Link**
+
+Here is an example of defining a link between virtual-network and network policy. Note that "sequence" and "timer" are the properties for the "virtual-network-network-policy" link.
+```
+   <xsd:element name="virtual-network-network-policy" type="VirtualNetworkPolicyType" />
+   <!--#IFMAP-SEMANTICS-IDL Link('virtual-network-network-policy', 'virtual-network', 'network-policy', ['ref']) -->
+   
+   <xsd:complexType name="VirtualNetworkPolicyType">
+      <xsd:all>
+         <xsd:element name="sequence" type="SequenceType" />
+         <xsd:element name="timer" type="TimerType" />
+      </xsd:all>
+   </xsd:complexType>
+```
+
 ###YANG as Modeling Language for IF-MAP Data Model###
 YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to faciliate modularity and enhance the readability of the schema. 
 
