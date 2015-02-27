@@ -8,7 +8,7 @@ We have chosen YANG as the primary modeling and API definition language for conf
 This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. 
 
 ###Contrail IF-MAP Data Model Semantics###
-Contrail data model follows IF-MAP graph-based data model semantics. Data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The code to access this data model in the database, CRUD operations, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the modeling language.
+Contrail data model follows IF-MAP graph-based data model semantics. Data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The database schema, REST API, and code to read/write the persisted data model, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the data model schema.
 
 Here are three basic constructs of IF-MAP based data model: Identity, Reference and Property
 
@@ -138,7 +138,8 @@ Here is an example of defining a link between virtual-network and network policy
 ###YANG as Modeling Language for IF-MAP Data Model###
 YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the usability and readability of the schema.
 
-Any top level YANG node that uses grouping `ifmap:Identity` is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses `ifmap:HasLink` or `ifmap:RefLink` is the definition for a property of the identity. 
+Any top level YANG node that uses grouping `ifmap:Identity` is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses `ifmap:HasLink` or `ifmap:RefLink` is the definition for a property of the identity. The key difference of YANG representation from the XSD representation is that IF-MAP properties and Links to other identities are orangized hierachically inside the identity node.
+
 ```
     // IF-MAP identity
     list virtual-network {
@@ -169,7 +170,7 @@ Any top level YANG node that uses grouping `ifmap:Identity` is the definition fo
    
         // IF-MAP REF links
         list network-policies {
-            uses ifmap:RefLink;
+            uses ifmap:RefLink; // mark network-policies as the RefLink from virtual-network to network-policy
             key to;
             leaf to {
                 type leafref { path "/network-policy/uuid"; }
@@ -185,7 +186,6 @@ Any top level YANG node that uses grouping `ifmap:Identity` is the definition fo
         ...
    }
 ```
-As you can see the key difference from the XSD representation, IF-MAP properties and Links to other identities are inside the identity node.
 
 **Organizing identities into YANG sub-modules**
 
