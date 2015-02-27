@@ -53,9 +53,42 @@ Here is an example from Contrail data model:
 
 The common data model is shared by all IQ services. "Shared" means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
 
-An IQ service can have its own private data model, or service specific data model. Each service specific data model has its own namespace. The data model schema of one IQ service may **not** be extended or changed by another IQ service. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store infrastructure for the sevice specific model as the common data model.
+An IQ service can also have its own private data model, or service specific data model. The data model schema of one IQ service may **not** be extended or changed by another IQ service. Each service specific data model has its own namespace. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store backend for the sevice specific model as the common data model.
 
+###XSD as Modeling Language for IF-MAP Data Model###
+**Identity**
+
+Any top level schema node with type "ifmap:IdentityType" is an IF-MAP identity. 
+```
+	<xsd:element name="virtual-network" type="ifmap:IdentityType"/>
+```
+Here is the definition of "ifmap:Identity" from  [ifmap-base-2.0.xsd](https://github.com/ITI/ifmap-python-client/blob/master/schema/ifmap-base-2.0.xsd):
+```
+	<!-- IdentityType Identifier represents an end-user -->
+	<xsd:complexType name="IdentityType">
+		<xsd:attribute name="administrative-domain" type="xsd:string" />
+		<xsd:attribute name="name" type="xsd:string" use="required" />
+		<xsd:attribute name="type" use="required">
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="aik-name" />
+					<xsd:enumeration value="distinguished-name" />
+					<xsd:enumeration value="dns-name" />
+					<xsd:enumeration value="email-address" />
+					<xsd:enumeration value="hip-hit" />
+					<xsd:enumeration value="kerberos-principal" />
+					<xsd:enumeration value="username" />
+					<xsd:enumeration value="sip-uri" />
+					<xsd:enumeration value="tel-uri" />
+					<xsd:enumeration value="other" />
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="other-type-definition" type="xsd:string" />
+	</xsd:complexType>
+```
 ###YANG as Modeling Language for IF-MAP Data Model###
+YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to faciliate modularity and enhance the readability of the schema. 
 
 ###Non-CRUD operation###
 
