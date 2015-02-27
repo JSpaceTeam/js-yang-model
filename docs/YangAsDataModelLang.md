@@ -58,11 +58,11 @@ An IQ service can also have its own private data model, or service specific data
 ###XSD as Modeling Language for IF-MAP Data Model###
 **Identity**
 
-Any top level schema node with type "ifmap:IdentityType" is an IF-MAP identity. 
+Any top level schema node with type `ifmap:IdentityType` is an IF-MAP identity. 
 ```
 	<xsd:element name="virtual-network" type="ifmap:IdentityType"/>
 ```
-Here is the definition of "ifmap:Identity" from  [ifmap-base-2.0.xsd](https://github.com/ITI/ifmap-python-client/blob/master/schema/ifmap-base-2.0.xsd):
+Here is the definition of `ifmap:Identity` from  [ifmap-base-2.0.xsd](https://github.com/ITI/ifmap-python-client/blob/master/schema/ifmap-base-2.0.xsd):
 ```
 	<!-- IdentityType Identifier represents an end-user -->
 	<xsd:complexType name="IdentityType">
@@ -90,7 +90,7 @@ Here is the definition of "ifmap:Identity" from  [ifmap-base-2.0.xsd](https://gi
 
 **Property**
 
-Here is an example of defining properties for the "virtual-network" identity. 
+Here is an example of defining properties for the `virtual-network` identity. 
 ```
    <xsd:element name="virtual-network-properties" type="VirtualNetworkType" />
    <!--#IFMAP-SEMANTICS-IDL Property('virtual-network-properties', 'virtual-network') -->
@@ -122,7 +122,7 @@ Here is an example of defining properties for the "virtual-network" identity.
 
 **Link**
 
-Here is an example of defining a link between virtual-network and network policy. Note that "sequence" and "timer" are the properties for the "virtual-network-network-policy" link.
+Here is an example of defining a link between virtual-network and network policy. Note that `sequence` and `timer` are the properties for the `virtual-network-network-policy` link.
 ```
    <xsd:element name="virtual-network-network-policy" type="VirtualNetworkPolicyType" />
    <!--#IFMAP-SEMANTICS-IDL Link('virtual-network-network-policy', 'virtual-network', 'network-policy', ['ref']) -->
@@ -138,7 +138,7 @@ Here is an example of defining a link between virtual-network and network policy
 ###YANG as Modeling Language for IF-MAP Data Model###
 YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the usability and readability of the schema.
 
-Any top level YANG node that uses grouping "ifmap:Identity" is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses "ifmap:HasLink" or "ifmap:RefLink" is the definition for a property of the identity. 
+Any top level YANG node that uses grouping `ifmap:Identity` is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses `ifmap:HasLink` or `ifmap:RefLink` is the definition for a property of the identity. 
 ```
     // IF-MAP identity
     list virtual-network {
