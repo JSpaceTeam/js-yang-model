@@ -7,6 +7,9 @@ We have chosen YANG as the primary modeling and API definition language for conf
 
 This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. 
 
+###Leveraging Contrail Config Node infrastructure### 
+
+![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/iq_contrail.png)
 ###Contrail IF-MAP Data Model Semantics###
 Contrail data model follows IF-MAP graph-based data model semantics. Data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The database schema, REST API, and code to read/write the persisted data model, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the data model schema.
 
