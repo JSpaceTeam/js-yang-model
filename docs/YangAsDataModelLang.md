@@ -7,7 +7,7 @@ We have chosen YANG as the primary modeling and API definition language for conf
 
 This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. 
 
-###Leveraging Contrail Config Node infrastructure### 
+###Leveraging Contrail Config Node Infrastructure###
 
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/iq_contrail.png)
 ###Contrail IF-MAP Data Model Semantics###
