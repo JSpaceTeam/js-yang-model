@@ -1,31 +1,34 @@
-### YANG as DDL for JUNOS-IQ Services
-  
+##YANG as DDL for JUNOS-IQ Services
+-----------------  
 
-###Introduction###
+###1. Introduction
 We have chosen YANG as the primary modeling and API definition language for config data in JUNOS IQ. This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. Here is architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/DataModelDrivenInterface.png)
 
-###Leveraging Contrail Config Node Infrastructure###
+###2. Leveraging Contrail Config Node Infrastructure
 As stated in the JUNOS IQ architecture document, we are leveraging Contrail as the starting point for JUNOS IQ service-oriented-architecture (SOA). Here is one design of IQ service that leverages Contrail config node infrastructure, including Contrail IF-MAP data model compiler.
 
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/iq_contrail.png)
-###Contrail IF-MAP Data Model Semantics###
-Contrail data model follows IF-MAP graph-based data model semantics. Data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The database schema, REST API, and code to read/write the persisted data model, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the data model schema.
 
-Here are three basic constructs of IF-MAP based data model: Identity, Reference and Property
+In this design, YANG is chosen to define the data model and operations for an IQ service. The REST APIs to access the service are generated from the YANG schema according to [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol. 
 
-**Identity**  
-* Node in the IF-MAP data model graph that represents a type of objects  
-* Identity can be attached with one or more properties  
+###3. Contrail IF-MAP Data Model Semantics
+This section intends to give an introduction to Contrail IF-MAP data model semantics. The main advantages of defining service data model with such semantics are
+- The data model can be easily mapped to key-value scale-out database such as Cassandra.
+- REST API (and its implementation) to access the data model can be generated from data model schema. 
+- Other cross-cutting features, such as RBAC, data model change notifcation, and logging, can also be auto-generated from the data model schema.
 
+Contrail IF-MAP data model semantics are basically the graph semantics. Three basic constructs are `identity` (graph vertex), `reference` (edge between the vertices), and `property` that can be attached to either vertex or edge of graph.
+
+**Identity**
+- Vertex in graph data model to represent a category of objects  
+- Identity can have zero, one or more properties  
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/I_P.png)
+- Each `identity` instance is uniquely identified by an UUID generated according to [RFC-4122](http://www.ietf.org/rfc/rfc4122.txt)
+- Identities are exposed as REST resources when accessed via REST API
+- Each identity are mapped to a table in Cassandra database.
 
-* Each instance of a certain identity is identified by an UUID generated according to RFC-4122  
-* Identities are exposed as REST resources when accessed via REST API
-* Each identity are mapped to a table in Cassandra database.
-
-**Reference**
-
+**Reference**  
 There are three types of references  
 * ***[Ref]*** - Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed
 
@@ -51,7 +54,7 @@ Here is an example from Contrail data model:
 
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/vnc.png)
 
-###Common Data Model vs Service Specific Data Model###
+###Common Data Model vs Service Specific Data Model
 
 The common data model is shared by all IQ services. "Shared" means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
 
@@ -268,14 +271,14 @@ submodule image-management {
 }
 ```
 
-###Non-CRUD operation###
+###Generated  
 
-###Data Model Change Notification##
+###Define non-CRUD Service API via YANG RPC
 
-###REST API for CRUD operations###
+###YANG Notification
 
-###Map YANG RPC to REST###
+###Map YANG RPC to REST
 
-###Map YANG notification to REST###
+###Map YANG notification to REST
 
 
