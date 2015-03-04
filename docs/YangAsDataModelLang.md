@@ -2,11 +2,13 @@
   
 
 ###Introduction###
-We have chosen YANG as the primary modeling and API definition language for config data in JUNOS IQ. Here is diagram from Bruno's [iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx):
-![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/master/docs/images/DataModelDrivenInterface.png?token=AHghsV7xF5AMGXMHleSUeNkymhUhMTMqks5U92gTwA%3D%3D)
+We have chosen YANG as the primary modeling and API definition language for config data in JUNOS IQ. This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. Here is architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
+![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/DataModelDrivenInterface.png)
 
-This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. 
+###Leveraging Contrail Config Node Infrastructure###
+As stated in the JUNOS IQ architecture document, we are leveraging Contrail as the starting point for JUNOS IQ service-oriented-architecture (SOA). Here is one design of IQ service that leverages Contrail config node infrastructure, including Contrail IF-MAP data model compiler.
 
+![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/iq_contrail.png)
 ###Contrail IF-MAP Data Model Semantics###
 Contrail data model follows IF-MAP graph-based data model semantics. Data model defined with such semantics can be easily mapped to key-value scale-out database such as Cassandra. The database schema, REST API, and code to read/write the persisted data model, can be generated from the modeling language. Implementation of other cross-cutting features, such as RBAC, notifcation, and logging etc, can also be generated automatically from the data model schema.
 
@@ -16,7 +18,7 @@ Here are three basic constructs of IF-MAP based data model: Identity, Reference 
 * Node in the IF-MAP data model graph that represents a type of objects  
 * Identity can be attached with one or more properties  
 
-    ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/I_P.png?token=AHghsQJ8G4pUt1_J1Em2K7TqzswTyLDbks5U96cSwA%3D%3D)
+    ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/I_P.png)
 
 * Each instance of a certain identity is identified by an UUID generated according to RFC-4122  
 * Identities are exposed as REST resources when accessed via REST API
@@ -27,27 +29,27 @@ Here are three basic constructs of IF-MAP based data model: Identity, Reference 
 There are three types of references  
 * ***[Ref]*** - Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed
 
-    ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/ref_link.png?token=AHghsf_1H4TYcMcznXY80yNblwK5XhAeks5U96eywA%3D%3D)
+    ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/ref_link.png)
 
 * ***[Has]*** - Child object can not exist without parent. When parent object is deleted, its linked child objects are deleted automatically.   
 
-    ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/has_link.png?token=AHghsaS822lyJOoHjIrofN67sScz9qcZks5U96o9wA%3D%3D)
+    ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/has_link.png)
 
 * ***[Conn]*** - Weak reference that does not prevent referenced object from being deleted. It is up to the application code to validate existence of referenced objects.
 
-    ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/conn_link.png?token=AHghsWfbLbpS3dEnOaMxwPBoR8Pd-rpBks5U96qawA%3D%3D)  
+    ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/conn_link.png)  
 
 **Property**  
 * One or more properties can be attached to either Identities or References  
 
-    ![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/P.png?token=AHghsdtj04JsAyROkdqMmhNvzTTczppDks5U96xwwA%3D%3D)
+    ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/P.png)
 
 * Property value can be either of primitive types or nested data structure such as JSON  
 * Properties are mapped to columns of a Cassandra table.
 
 Here is an example from Contrail data model:
 
-![](https://raw.githubusercontent.com/JSpaceTeam/js-yang-model/jnpr-tjiang-edit/docs/images/vnc.png?token=AHghsafVnYTN55DZ0K96jYA2zvKFuSyXks5U97mqwA%3D%3D)
+![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/vnc.png)
 
 ###Common Data Model vs Service Specific Data Model###
 
