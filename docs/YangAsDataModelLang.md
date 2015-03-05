@@ -318,7 +318,7 @@ Connection: keep-alive
 }
 ```
 
-###API to retrieve device by uuid###
+**API to retrieve device by uuid**
 
 *HTTP Request*
 ```
@@ -362,6 +362,8 @@ Connection: keep-alive
 }
 ```
 
-###Map YANG notification to REST
+###8. <a name="section8"></a>RESTCONF API for operations
+
+###9. <a name="section9"></a>YANG notifications
 
 
