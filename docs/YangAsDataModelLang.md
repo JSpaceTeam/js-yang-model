@@ -14,7 +14,9 @@ In this design, YANG is chosen to define the data model and operations of an IQ 
 
 In order to leverage Contrail infrastructure, the data model defined in the service YANG needs to follow the IF-MAP data model semantics (See [Section 3](#section3)). The data model section of the service YANG schema is compiled to Contrail IF-MAP XSD, which is then compiled into data model CRUD APIs to be plugged into the Contrail API server. The same data model section is also compiled to the Service REST API to access the data model with ability to do paging, filtering, sorting on top of basic CRUD APIs supported by the Contrail API server. 
 
-The non-CRUD operation section of the service YANG are compiled to REST API stubs to be implemented with service specific business logic. The business logic can access the data model via Contrail API Server and listen for data model changes via RabbitMQ.
+The non-CRUD operation section of the service YANG is compiled to REST API stubs to be implemented with service specific business logic. The business logic can access the data model via Contrail API Server and listen for data model changes via RabbitMQ. 
+
+The YANG notification section of the service YANG is compiled into implementation that sends notification to REST client via HTML5 server sent events over HTTP.
 
 ###3. <a name="section3"></a>Contrail IF-MAP Data Model Semantics
 This section intends to give an introduction to Contrail IF-MAP data model semantics. The main advantages of defining service data model with such semantics are
@@ -50,7 +52,7 @@ The common data model is shared by all IQ services. "Shared" means that the sche
 
 An IQ service can also have its own private data model, or service specific data model. The data model schema of one IQ service may **not** be extended or changed by another IQ service. Each service specific data model has its own namespace. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store backend for the sevice specific model as the common data model.
 
-###5. XSD as Modeling Language for IF-MAP Data Model###
+###5. <a name="section5"></a>XSD as Modeling Language for IF-MAP Data Model###
 **Identity**
 
 Any top level schema node with type `ifmap:IdentityType` is an IF-MAP identity. 
@@ -130,7 +132,7 @@ Here is an example of defining a link between virtual-network and network policy
    </xsd:complexType>
 ```
 
-###6. YANG as Modeling Language for IF-MAP Data Model###
+###6. <a name="section6"></a>YANG as Modeling Language for IF-MAP Data Model###
 YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the usability and readability of the schema.
 
 Any top level YANG node that uses grouping `ifmap:Identity` is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses `ifmap:HasLink` or `ifmap:RefLink` is the definition for a property of the identity. The key difference of YANG representation from the XSD representation is that IF-MAP properties and Links to other identities are orangized hierachically inside the identity node.
@@ -150,18 +152,7 @@ Any top level YANG node that uses grouping `ifmap:Identity` is the definition fo
             type uint32;
             description "A unique id for the network, auto generated";
         }
-        leaf vxlan-network-identifier {
-            type uint32;
-            range "0 .. 1048575";
-            description "VNI for the network, configured by user";
-        }
-        leaf forwarding-mode {
-            type enumeration { 
-                enum l2_l3;
-                enum l2;
-            }
-            description "Forwarding mode for virtual-network";
-        }
+        ...
    
         // IF-MAP REF links
         list network-policies {
@@ -233,6 +224,7 @@ submodule inventory-management {
 ```
 
 Other sub-modules can extend an existing identity defined in a different module via YANG augmentation. In the following example, the `image-management` sub-module extends the `device` by adding a new RefLink to the `image` identity.
+
 ```
 submodule image-management {
     ...
@@ -261,13 +253,114 @@ submodule image-management {
 }
 ```
 
-###Generated  
+**Defining non-CRUD service API via YANG RPC**  
+(TODO)
 
-###Define non-CRUD Service API via YANG RPC
+**Defining service specific notification via YANG notification**  
+(TODO)
 
-###YANG Notification
+###7. <a name="section7"></a>RESTCONF API to access the common or service-specific data model
+The REST APIs to access the common or service-specific data model are generated from the service YANG according to RESTCONF spec. This section does not cover the details on RESTCONF which can be found at [http://tools.ietf.org/html/draft-ietf-netconf-restconf-04](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04)). Instead, we go over an example in this section to show what the APIs look like when they are generated from service YANG.
 
-###Map YANG RPC to REST
+Let's start with defining the `device` identity in common data model as following:
+```
+    // IF-MAP property
+    list device {
+        description "Networking Device";
+        uses ifmap:Identity;
+        key uuid;
+        
+        // IF-MAP properties
+        container system {
+            description "Device system info";
+            leaf hostname { type string; description "Host Name";}
+            leaf ip { type inet:ip-address; description "Device mgt IP"; }
+        }
+    }
+```
+
+**API to retrieve list of devices**  
+*HTTP Request*
+```
+curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device?size=10&from=5&depth=1&show_href=true' -d '
+{ 
+    "filter": { "system/hostname": { "match" : "SRX"} },
+    "sort": [ { "system/hostname", "asc" } ]
+}
+'
+```
+
+*HTTP Response*
+```
+HTTP/1.1 200 OK
+Server: nginx/1.7.9
+Date: Thu, 05 Mar 2015 01:06:40 GMT
+Content-Type: application/yang.data+json; charset=UTF-8
+Content-Length: 19659
+Connection: keep-alive
+
+{
+    @size: 2,
+	"deivce": [
+		{
+			"name": "my-SRX-1",
+			"fq-name": [ "coke-domain", "finance", "my-SRX-1"],
+			"uuid": "36efa9d3-151e-4535-93da-ca6a8cc78862",
+			"href": "http://10.87.127.180:8082/restconf/data/vnc-cfg/iq-common-data-model:device=36efa9d3-151e-4535-93da-ca6a8cc78862"
+		}, 
+		{
+			"name": "my-SRX-2",
+			"fq-name": [ "coke-domain", "finance", "my-SRX-2"],
+			"uuid": "6554ee51-3dac-488e-8161-c083ea9d04db",
+			"href": "http://10.87.127.180:8082/restconf/data/vnc-cfg/iq-common-data-model:device=6554ee51-3dac-488e-8161-c083ea9d04db"
+		}
+	]				
+}
+```
+
+###API to retrieve device by uuid###
+
+*HTTP Request*
+```
+curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device=36efa9d3-151e-4535-93da-ca6a8cc78862'
+```
+
+*HTTP Response*
+```
+HTTP/1.1 200 OK
+Server: nginx/1.7.9
+Date: Thu, 05 Mar 2015 01:06:40 GMT
+Content-Type: application/yang.data+json; charset=UTF-8
+Content-Length: 19659
+Connection: keep-alive
+
+{
+	"name": "my-SRX-1",
+	"fq-name": [ "coke-domain", "finance", "my-SRX-1"],
+	"uuid": "36efa9d3-151e-4535-93da-ca6a8cc78862",
+	"id_perms": {
+	    "enable": true,
+	    "description": null,
+	    "created": "2014-10-31T18:38:58.860023",
+	    "uuid": {
+	        "uuid_mslong": 3958569321539454500,
+	        "uuid_lslong": 10654050427475560000
+	    },
+	    "last_modified": "2014-10-31T18:38:58.860023",
+	    "permissions": {
+	        "owner": "cloud-admin",
+	        "owner_access": 7,
+	        "other_access": 7,
+	        "group": "cloud-admin-group",
+	        "group_access": 7
+	    }
+	},
+	"system": {
+		"hostname": "my-SRX-1",
+		"ip": "10.1.1.1"
+	}
+}
+```
 
 ###Map YANG notification to REST
 
