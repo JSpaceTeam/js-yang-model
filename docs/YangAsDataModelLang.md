@@ -273,7 +273,7 @@ Let's start with defining the `device` identity in common data model as followin
         // IF-MAP properties
         container system {
             description "Device system info";
-            leaf hostname { type string; description "Host Name";}
+            leaf family { type string; description "Device Family";}
             leaf ip { type inet:ip-address; description "Device mgt IP"; }
         }
     }
@@ -284,8 +284,8 @@ Let's start with defining the `device` identity in common data model as followin
 ```
 curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device?size=10&from=5&depth=1&show_href=true' -d '
 { 
-    "filter": { "system/hostname": { "match" : "SRX"} },
-    "sort": [ { "system/hostname", "asc" } ]
+    "filter": { "system/family": { "match" : "junos-es"} },
+    "sort": [ { "name", "asc" } ]
 }
 '
 ```
@@ -356,7 +356,7 @@ Connection: keep-alive
 	    }
 	},
 	"system": {
-		"hostname": "my-SRX-1",
+		"family": "junos-es",
 		"ip": "10.1.1.1"
 	}
 }
