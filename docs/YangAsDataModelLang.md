@@ -87,7 +87,7 @@ Here is the definition of `ifmap:Identity` from  [ifmap-base-2.0.xsd](https://gi
 
 **Property**
 
-Here is an example of defining properties for the `virtual-network` identity. 
+XSD comment `<!--#IFMAP-SEMANTICS-IDL Property()-->` is used to mark a XSD element as a property of an identity. Here is an example of defining properties for the `virtual-network` identity. 
 ```
    <xsd:element name="virtual-network-properties" type="VirtualNetworkType" />
    <!--#IFMAP-SEMANTICS-IDL Property('virtual-network-properties', 'virtual-network') -->
@@ -119,7 +119,7 @@ Here is an example of defining properties for the `virtual-network` identity.
 
 **Link**
 
-Here is an example of defining a link between virtual-network and network policy. Note that `sequence` and `timer` are the properties for the `virtual-network-network-policy` link.
+XSD comment `<!--#IFMAP-SEMANTICS-IDL Link()-->` is used to mark a XSD element as a link from one identity to another. Here is an example of defining a link from virtual-network to network policy. Note that the link XSD element can be a nested structure with child nodes as the link property. In this the following example, `sequence` and `timer` are the properties for the `virtual-network-network-policy` link.
 ```
    <xsd:element name="virtual-network-network-policy" type="VirtualNetworkPolicyType" />
    <!--#IFMAP-SEMANTICS-IDL Link('virtual-network-network-policy', 'virtual-network', 'network-policy', ['ref']) -->
@@ -133,10 +133,11 @@ Here is an example of defining a link between virtual-network and network policy
 ```
 
 ###6. <a name="section6"></a>YANG as Modeling Language for IF-MAP Data Model###
-YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the usability and readability of the schema.
+YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the modularity, readability, and overall usability of the schema.
 
-Any top level YANG node that uses grouping `ifmap:Identity` is the definition for an IF-MAP identity. Any direct child node of the identity node that does not uses `ifmap:HasLink` or `ifmap:RefLink` is the definition for a property of the identity. The key difference of YANG representation from the XSD representation is that IF-MAP properties and Links to other identities are orangized hierachically inside the identity node.
+We defined a YANG grouping `ifmap:Idnetity` to mark a top level YANG node as an IF-MAP identity. Any direct child nodes of the identity node are defined as the IF-MAP property of the identity. We also defined 3 YANG groups (`ifmap:HasLink`, `ifmap:RefLink`, and `ifmap:ConnLink`) to mark an YANG node as an IF-MAP link. Instead of defining the IF-MAP link as a top level schema node as in the XSD representation, we define it as child node of the identity node that inherits the `ifmap:HasLink`, `ifmap:RefLink`, or `ifmap:ConnLink`. The child nodes of the link node are defined as the IF-MAP properties of the link node.
 
+In the following example, `virtual-network` is defined as an IF-MAP identity. `allow-transit` and `network-id` are defined as the IF-MAP properties of the `virtual-network` identity. `network-policies` is defined as the IF-MAP link from `virtual-network` to `network-policy`. `sequence` is defined as the IF-MAP property of the `network-policies` link. 
 ```
     // IF-MAP identity
     list virtual-network {
@@ -175,9 +176,11 @@ Any top level YANG node that uses grouping `ifmap:Identity` is the definition fo
 
 **Organizing identities into YANG sub-modules**
 
-When there are large number identities defined in the common data model, it is desirable to group the identities in separate YANG sub-modules. In practice, the sub-modules could be owned by different teams within the company. YANG's augmentation feature makes it handy for one sub-module to extend or augment an identities defined in another sub-module.
+When there are large number identities defined in the common data model, it is desirable to group the identities in separate YANG sub-modules. In practice, the sub-modules could be owned by different teams within the company. YANG's augmentation feature allows us to extend/augment an identities defined in different sub-modules.
 
-We have a top level YANG module `iq-common-data-model` defined in `iq-cdm.yang". This module includes a list of sub-modules. 
+We have a top level YANG module `iq-common-data-model` for the common data model. This module includes a list of sub-modules. Each sub-module defines a set of identities. For example, the `inv-mgt.yang` contains the `inventory-management` sub-module that defines identities such as `device`, `physical-interface`, `logical-interface`, etc. In this example, the ***img-mgt.yang*** sub-module extends the `device` identity defined in ***inv-mgt.yang*** with a new RefLink to the `image` identity.
+
+*iq-cdm.yang*
 ```
 module iq-common-data-model {
     yang-version 1;
@@ -194,8 +197,7 @@ module iq-common-data-model {
     ...
 }
 ```
-
-Each sub-module defines a set of identities. For example, the `inv-mgt.yang` contains the `inventory-management` sub-module that defines identities such as `device`, `physical-interface`, `logical-interface`, etc. 
+*inv-mgt.yang*
 ```
 submodule inventory-management {
     yang-version 1;
@@ -222,9 +224,7 @@ submodule inventory-management {
     ...
 }
 ```
-
-Other sub-modules can extend an existing identity defined in a different module via YANG augmentation. In the following example, the `image-management` sub-module extends the `device` by adding a new RefLink to the `image` identity.
-
+*img-mgt.yang*
 ```
 submodule image-management {
     ...
