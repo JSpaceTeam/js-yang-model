@@ -289,6 +289,7 @@ curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device?
 }
 '
 ```
+In this example, `size` and `from` are the pagination parameters to fetch 10 `device` objects starting from the 6th of matching found devices. `depth=1` specifies to first level of child property value. "show_href=true" specifies to show thereturn the HATEOAS links for the returned objects.
 
 *HTTP Response*
 ```
