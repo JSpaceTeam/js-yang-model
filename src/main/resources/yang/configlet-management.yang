@@ -1,7 +1,7 @@
 submodule configlet-management {
     yang-version 1;
-    belongs-to "common-module" {
-        prefix "common-module";
+    belongs-to "iq-common-data-model" {
+        prefix "iq-cdm";
     }
     // import ietf-inet-types { prefix "inet"; }
     // import ietf-yang-types { prefix "yang"; }

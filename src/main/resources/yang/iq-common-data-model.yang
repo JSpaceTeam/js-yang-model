@@ -1,7 +1,7 @@
-module common-module {
+module iq-common-data-model {
     yang-version 1;
     namespace "http://www.juniper.net/ns/vnc";
-    prefix "common-module";
+    prefix "iq-cdm";
 
     include configlet-management;
     include configuration-file-management;
