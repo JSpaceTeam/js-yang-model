@@ -8,4 +8,4 @@ resolvers += Resolver.url(
   "jspace-private-plugins",
   url("http://10.155.87.253:8080/mavenrepo/sbt"))(Resolver.ivyStylePatterns)
 
-addSbtPlugin("net.juniper" % "yang-plugin" % "0.3.2")
+addSbtPlugin("net.juniper" % "yang-plugin" % "0.4.0")
