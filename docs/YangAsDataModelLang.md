@@ -2,7 +2,7 @@
 -----------------  
 
 ###1. Introduction
-We have chosen YANG as the primary data modeling and API definition language for micro services in CSP. This means that the designer of a micro service creates a YANG model with the following:
+We have chosen YANG as the data modeling and API definition language for micro services in CSP. This means that the designer of a micro service creates a YANG model with the following:
 - Data model describing the resources which are managed (and exposed) by the micro service.
 - Operational RPCs provided by the micro service to its consumers.
 - Notifications that can be sent by the micro service to subscribers.
@@ -17,6 +17,12 @@ This document focuses more on using YANG for defining the data model of a micro 
 We have made a decision to leverage Contrail technologies as much as possible and appropriate. As part of this, the Contrail Config Node can be leveraged as a DBaaS. This is shown in the following architecture diagram.
 
 ![](https://github.com/rjoyce/js-yang-model/blob/master/docs/images/contrail-dbaas.png)
+
+The main advantages of leveraging Contrail Config Node as DBaaS are: 
+
+- The data model can be easily mapped to scale-out database such as Cassandra.
+- REST API (and its implementation) to access the data model can be generated from data model schema. 
+- Other cross-cutting features, such as RBAC, data model change notifcation, and logging, can also be auto-generated from the data model schema.
 
 In this design, the micro service designer creates a YANG model for the service as shown in the top right-hand side of the above diagram. Our tool chain compiles this model and generates the following:
 
@@ -34,36 +40,120 @@ The operation RPCs defined in the YANG model is compiled to REST API stubs to be
 PS: The YANG notification section of the service YANG is compiled into implementation that sends notification to REST client via HTML5 server sent events over HTTP. This is not shown in the diagram above.
 
 ###3. <a name="section3"></a>Contrail IF-MAP Data Model Semantics
-This section intends to give an introduction to Contrail IF-MAP data model semantics. The main advantages of defining service data model with such semantics are
-- The data model can be easily mapped to key-value scale-out database such as Cassandra.
-- REST API (and its implementation) to access the data model can be generated from data model schema. 
-- Other cross-cutting features, such as RBAC, data model change notifcation, and logging, can also be auto-generated from the data model schema.
-
-Contrail IF-MAP data model semantics are basically the graph semantics. Three basic constructs are `identity` (graph vertex), `reference` (edge between the vertices), and `property` that can be attached to either vertex or edge of graph.
+This section intends to give an introduction to Contrail data model semantics. Contrail data model semantics are basically that of a Directed Acyclic Graph. Three basic constructs are `identity` (graph vertex), `reference` (edge between the vertices), and `property` that can be attached to either vertex or edge of graph.
 
 **Identity**  
-An identity represents a vertex in the IF-MAP graph data model. It uniquely identify a category of objects in the data model. Each `identity` instance is uniquely identified by an UUID generated according to [RFC-4122](http://www.ietf.org/rfc/rfc4122.txt). In Contrail implementation, each identity is mapped to a table in Cassandra database.  
+An identity represents a vertex in the graph data model. It uniquely identify a category of objects in the data model. Each `identity` instance is uniquely identified by an UUID generated according to [RFC-4122](http://www.ietf.org/rfc/rfc4122.txt). In Contrail implementation, each identity is mapped to a table in Cassandra database.  
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/I_P.png)
     
 **Reference**  
-A reference represents a directional edge between two vertices in the IF-MAP graph data model. Here are three categories of references supported by Contrail:
-* ***[Ref]*** - Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed.  
+A reference represents a directional edge between two vertices in the graph data model. Here are three categories of references supported by Contrail:
+* ***[Ref]*** - Strong reference that guarantees referential integrity. A referenced object can not be deleted until the reference is removed.
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/ref_link.png)
-* ***[Has]*** - Child object can not exist without parent. When parent object is deleted, its linked child objects are deleted automatically.   
+* ***[Has]*** - This models a parent-child relation. Child object can not exist without parent. When parent object is deleted, its linked children objects are deleted automatically.   
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/has_link.png)
-* ***[Conn]*** - Weak reference that does not prevent referenced object from being deleted. It is up to the application code to validate existence of referenced objects.   
+* ***[Conn]*** - Weak reference that does not prevent referenced object from being deleted. It is up to the application code to validate existence of referenced objects.  
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/conn_link.png)  
 
 **Property**  
-The `identity` or `reference` in the IF-MAP data model can have any number of properties. Each property is a name value pair. The value can be either a primitive type or a nested data structure such as JSON. In Contrail implementation, properties are mapped to columns of the Cassandra table.  
+An `identity` or `reference` in the graph data model can have any number of properties. Each property is a name value pair. The value can be either a primitive type or a nested data structure represented as a JSON object. In Contrail implementation, properties are mapped to columns of the Cassandra table.  
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/P.png)
 
 Here is an example from Contrail data model:  
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/vnc.png)
 
+###4. <a name="section4"></a>Representing Contrail Graph Data Model using YANG
+
+We have defined a common yang module for CSP micro services. This is defined [here](https://github.com/Juniper-CSP/csp-yang-data-model/blob/master/common/src/main/yang/csp-common.yang). This module needs to be imported by all CSP service yang modules. It defines the following:
+
+- a YANG extension named `csp:vertex` that can be used to annotate a data node in a service's data model as forming the vertex of a graph.
+- a YANG extension named `csp:has-edge` that can be used to annotate a data node as having a *containment* relation from its parent data node.
+- a YANG extension named `csp:ref-edge` that can be used to annotate a data node as having a *strong reference* relation from its parent data node.
+- a YANG grouping named `csp:entity` that can be used to *inherit* all the mandatory properties required by a data node that needs to be persisted on the Contrail Config Nodes.
+
+The `csp:vertex` extension is defined as follows:
+````
+    extension vertex  {
+	    description "A vertex maintains pointers to both a set of incoming and outgoing edges.
+                    The outgoing edges are those edges for which the vertex is the tail.
+                    The incoming edges are those edges for which the vertex is the head.";
+    }
+````
+
+The `csp:has-edge` extension is defined as follows:
+````
+    extension has-edge  {
+        description "An Edge links two vertices. Along with its key/value properties, an edge has both a directionality and a label.
+                    The directionality determines which vertex is the tail vertex (out vertex) and which vertex is the head vertex (in vertex).
+                    The edge label determines the type of relationship that exists between the two vertices.";
+    }
+````
+
+The `csp:ref-edge` extension is defined as follows:
+````
+    extension ref-edge  {
+        description "An Edge links two vertices. Along with its key/value properties, an edge has both a directionality and a label.
+                    The directionality determines which vertex is the tail vertex (out vertex) and which vertex is the head vertex (in vertex).
+                    The edge label determines the type of relationship that exists between the two vertices.";
+    }
+````
+
+The `csp:entity` *grouping* is defined as follows:
+````
+    grouping entity {
+        description "Base grouping for all objects that can be identified, access-coontroled, multi-tenantable";
+        leaf administrative-domain { type string; }
+        leaf type {
+            type enumeration {
+                enum aik-name;
+                enum distinguished-name;
+                enum dns-name;
+                enum email-address;
+                enum hip-hit;
+                enum kerberos-principal;
+                enum username;
+                enum sip-uri;
+                enum tel-uri;
+                enum other;
+            }
+        }
+        leaf other-definition { type string; }
+
+        // Extensions
+        leaf-list fq-name {
+            description "FQDN for the IFMAP identity";
+            type string;
+        }
+        leaf uuid {
+            description "UUID for the IFMAP identity";
+            type yang:uuid;
+        }
+        leaf href {
+            description "HATEOAS HREF for the identity node";
+            type inet:uri;
+        }
+        leaf parent-uuid {
+            description "parent node UUID";
+            type yang:uuid;
+        }
+        leaf parent-href {
+            description "parent node HATEOAS HREF";
+            type inet:uri;
+        }
+        leaf parent-type {
+            description "parent node type";
+            type string;
+        }
+        leaf display-name {
+            description "Display name";
+            type string;
+        }
+    }
+````
+
 ###4. <a name="section4"></a>Common Data Model vs Service Specific Data Model
 
-The common data model is shared by all IQ services. "Shared" means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
+The common data model is imported by all CSP services. This means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
 
 An IQ service can also have its own private data model, or service specific data model. The data model schema of one IQ service may **not** be extended or changed by another IQ service. Each service specific data model has its own namespace. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store backend for the sevice specific model as the common data model.
 
