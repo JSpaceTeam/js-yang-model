@@ -1,16 +1,24 @@
-##YANG as DDL for JUNOS-IQ Services
+##YANG as DDL for CSP Micro Services
 -----------------  
 
 ###1. Introduction
-We have chosen YANG as the primary modeling and API definition language for config data in JUNOS IQ. This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. Here is architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
+We have chosen YANG as the primary data modeling and API definition language for micro services in CSP. This means that the designer of a micro service creates a YANG model with the following:
+- Data model describing the resources which are managed (and exposed) by the micro service.
+- Operational RPCs provided by the micro service to its consumers.
+- Notifications that can be sent by the micro service to subscribers.
+
+From this YANG model, tools generate both the provider-side and consumer-side code for the REST API of this micro service. This is illustrated in the following architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/DataModelDrivenInterface.png)
 
+This document focuses more on using YANG for defining the data model of a micro service. Aspects related to RPCs and notifications will be dealt with in other documents.
+
 ###2. Leveraging Contrail Config Node Infrastructure
-As stated in the JUNOS IQ architecture document, we are leveraging Contrail as the starting point for JUNOS IQ service-oriented-architecture (SOA). Here is one design of IQ service that leverages Contrail config node infrastructure, including Contrail IF-MAP data model compiler.
 
-![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/iq_contrail.png)
+We have made a decision to leverage Contrail technologies as much as possible and appropriate. As part of this, the Contrail Config Node can be leveraged as a DBaaS. This is shown in the following architecture diagram.
 
-In this design, YANG is chosen to define the data model and operations of an IQ service. The REST APIs to access the data model and operations are generated from the YANG schema according to [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol. There are 3 sections in the service YANG definition: a section to defined the data model, a section to define non-CRUD operations supported by the service, and a section to define service notifications.
+![](https://github.com/rjoyce/rjoyce.github.io/raw/master/images/js-yang-model/contrail_dbaas.png)
+
+In this design, YANG is chosen to define the data model and operations of a CSP service. The REST APIs to access the data model and operations are generated from the YANG schema according to [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol. There are 3 sections in the service YANG definition: a section to defined the data model, a section to define non-CRUD operations (RPCs) supported by the service, and a section to define service notifications.
 
 In order to leverage Contrail infrastructure, the data model defined in the service YANG needs to follow the IF-MAP data model semantics (See [Section 3](#section3)). The data model section of the service YANG schema is compiled to Contrail IF-MAP XSD, which is then compiled into data model CRUD APIs to be plugged into the Contrail API server. The same data model section is also compiled to the Service REST API to access the data model with ability to do paging, filtering, sorting on top of basic CRUD APIs supported by the Contrail API server. 
 
