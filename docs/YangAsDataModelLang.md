@@ -16,7 +16,7 @@ This document focuses more on using YANG for defining the data model of a micro 
 
 We have made a decision to leverage Contrail technologies as much as possible and appropriate. As part of this, the Contrail Config Node can be leveraged as a DBaaS. This is shown in the following architecture diagram.
 
-![](https://github.com/rjoyce/rjoyce.github.io/raw/master/images/js-yang-model/contrail_dbaas.png)
+![](https://github.com/rjoyce/js-yang-model/blob/master/docs/images/contrail-dbaas.png)
 
 In this design, YANG is chosen to define the data model and operations of a CSP service. The REST APIs to access the data model and operations are generated from the YANG schema according to [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol. There are 3 sections in the service YANG definition: a section to defined the data model, a section to define non-CRUD operations (RPCs) supported by the service, and a section to define service notifications.
 
