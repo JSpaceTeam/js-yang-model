@@ -62,9 +62,9 @@ An `identity` or `reference` in the graph data model can have any number of prop
 Here is an example from Contrail data model:  
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/vnc.png)
 
-###4. <a name="section4"></a>Representing Contrail Graph Data Model using YANG
+###4. <a name="section4"></a>Representing  Graph Data Model using YANG
 
-We have defined a common yang module for CSP micro services. This is defined [here](https://github.com/Juniper-CSP/csp-yang-data-model/blob/master/common/src/main/yang/csp-common.yang). This module needs to be imported by all CSP service yang modules. It defines the following:
+In order to leverage the Contrail Config Node infrastructure we need to be able to capture the Contrail graph data model semantics inside the YANG models to be defined for CSP micro services. In order to facilitate this, we have defined a common yang module for CSP micro services. This common module is defined [here](https://github.com/Juniper-CSP/csp-yang-data-model/blob/master/common/src/main/yang/csp-common.yang). This module needs to be imported by all CSP service yang modules. It defines the following:
 
 - a YANG extension named `csp:vertex` that can be used to annotate a data node in a service's data model as forming the vertex of a graph.
 - a YANG extension named `csp:has-edge` that can be used to annotate a data node as having a *containment* relation from its parent data node.
@@ -183,6 +183,10 @@ This is shown in the following YANG snippet:
 					path "/config-version/uuid"
 				}
 			}
+			
+			leaf archived-at {
+				type yang:datetime;
+			}
 		}
 		
 		list script {
@@ -193,6 +197,10 @@ This is shown in the following YANG snippet:
 				type leafref {
 					path "/script/uuid"
 				}
+			}
+			
+			leaf deployed-at {
+				type yang:datetime;
 			}
 		}
 	}
@@ -228,14 +236,10 @@ Please note the following points about the above YANG model:
 
 - The `csp:vertex` statement is used to mark the device, config-version, and script data nodes as vertices in the graph data model.
 - The `csp:entity` grouping is used inside these nodes to inherit the mandatory properties required by all vertices.
+- Child nodes of a node that uses `csp:entity` become properties of that vertex (columns in the Cassandra table for this vertex). For example, `host-name` and `ip-address` are properties of the `device` vertex.
 - The `csp:has-edge` statement is used to mark the list `/device/config-version` as modeling a containment relationship from the device resource to configuration-version resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual configuration-version at the XPath `/configuration-version/uuid`.
 - The `csp:ref-edge` statement is used to mark the list `/device/script` as modeling a reference relationship from the device resource to script resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual script at the XPath `/script/uuid`.
-
-###4. <a name="section4"></a>Common Data Model vs Service Specific Data Model
-
-The common data model is imported by all CSP services. This means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
-
-An IQ service can also have its own private data model, or service specific data model. The data model schema of one IQ service may **not** be extended or changed by another IQ service. Each service specific data model has its own namespace. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store backend for the sevice specific model as the common data model.
+- Child nodes of a node marked as `csp:has-edge` or `csp:ref-edge` becomes properties of that edge. For example, `archived-at` becomes a property of the containment edge from the device to configuration-version.
 
 ###5. <a name="section5"></a>XSD as Modeling Language for IF-MAP Data Model###
 **Identity**
@@ -317,236 +321,9 @@ XSD comment `<!--#IFMAP-SEMANTICS-IDL Link()-->` is used to mark a XSD element a
    </xsd:complexType>
 ```
 
-###6. <a name="section6"></a>YANG as Modeling Language for IF-MAP Data Model###
-YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the modularity, readability, and overall usability of the schema.
+###7. <a name="section7"></a>RESTCONF API to access the data model
 
-We defined a YANG grouping `ifmap:Idnetity` to mark a top level YANG node as an IF-MAP identity. Any direct child nodes of the identity node are defined as the IF-MAP property of the identity. We also defined 3 YANG groups (`ifmap:HasLink`, `ifmap:RefLink`, and `ifmap:ConnLink`) to mark an YANG node as an IF-MAP link. Instead of defining the IF-MAP link as a top level schema node as in the XSD representation, we define it as child node of the identity node that inherits the `ifmap:HasLink`, `ifmap:RefLink`, or `ifmap:ConnLink`. The child nodes of the link node are defined as the IF-MAP properties of the link node.
-
-In the following example, `virtual-network` is defined as an IF-MAP identity. `allow-transit` and `network-id` are defined as the IF-MAP properties of the `virtual-network` identity. `network-policies` is defined as the IF-MAP link from `virtual-network` to `network-policy`. `sequence` is defined as the IF-MAP property of the `network-policies` link. 
-```
-    // IF-MAP identity
-    list virtual-network {
-        description "Virutal Network";
-        uses ifmap:Identity;  // mark the virtual-network as an IF-MAP identity
-        key uuid;  
-
-        // IF-MAP properties for the identity
-        leaf allow-transit { 
-            type boolean; 
-        }
-        leaf network-id {
-            type uint32;
-            description "A unique id for the network, auto generated";
-        }
-        ...
-   
-        // IF-MAP REF links
-        list network-policies {
-            uses ifmap:RefLink; // mark network-policies as the RefLink from virtual-network to network-policy
-            key to;
-            leaf to {
-                type leafref { path "/network-policy/uuid"; }
-            }
-            
-            // IF-MAP property for the link
-            container sequence {
-                leaf major { type uint32; }
-                leaf minor { type uint32; }
-            }
-            ...
-        }
-        ...
-   }
-```
-
-**Organizing identities into YANG sub-modules**
-
-When there are large number identities defined in the common data model, it is desirable to group the identities in separate YANG sub-modules. In practice, the sub-modules could be owned by different teams within the company. YANG's augmentation feature allows us to extend/augment an identities defined in different sub-modules.
-
-We have a top level YANG module `iq-common-data-model` for the common data model. This module includes a list of sub-modules. Each sub-module defines a set of identities. For example, the `inv-mgt.yang` contains the `inventory-management` sub-module that defines identities such as `device`, `physical-interface`, `logical-interface`, etc. In this example, the ***img-mgt.yang*** sub-module extends the `device` identity defined in ***inv-mgt.yang*** with a new RefLink to the `image` identity.
-
-*iq-cdm.yang*
-```
-module iq-common-data-model {
-    yang-version 1;
-    namespace "http://www.juniper.net/ns/vnc";
-    prefix "iq-cdm";
-    organization "Juniper Networks";
-    revision "2015-02-05" { description "Initial revision"; }	
-    description "Juniper Common Data Model";
-
-    include inventory-management;
-    include device-management;
-    include image-management;
-    include template-management;
-    ...
-}
-```
-*inv-mgt.yang*
-```
-submodule inventory-management {
-    yang-version 1;
-    belongs-to "iq-common-data-model" {
-        prefix "iq-cdm";
-    }
-
-    import ietf-inet-types { prefix "inet"; }
-    import ietf-yang-types { prefix "yang"; }
-    import iq-ifmap-types { prefix "ifmap"; }
-    contact "JUNOS Space <jspace@juniper.net>";
-    organization "Juniper Networks";
-    description "Inventory management";
-    revision "2015-02-05" { description "Initial revision"; }
-
-    list device {
-        description "Networking device";
-        uses ifmap:Identity;
-        key uuid;
-
-	...
-    }
-    
-    ...
-}
-```
-*img-mgt.yang*
-```
-submodule image-management {
-    ...
-    
-    list image {
-        description "Device image";
-        uses ifmap:Identity;
-        key uuid;
-	
-	...
-    }
-
-    augment "/device" {
-        list image {
-            uses ifmap:RefLink; // RefLink from device to image
-            key to;
-            leaf to {
-                type leafref { path "/image/uuid" };
-            }
-            
-            ...
-        }
-    }
-    
-    ...
-}
-```
-
-**Defining non-CRUD service API via YANG RPC**  
-(TODO)
-
-**Defining service specific notification via YANG notification**  
-(TODO)
-
-###7. <a name="section7"></a>RESTCONF API to access the common or service-specific data model
-The REST APIs to access the common or service-specific data model are generated from the service YANG according to RESTCONF spec. This section does not cover the details on RESTCONF which can be found at [http://tools.ietf.org/html/draft-ietf-netconf-restconf-04](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04)). Instead, we go over an example in this section to show what the APIs look like when they are generated from service YANG.
-
-Let's start with defining the `device` identity in common data model as following:
-```
-    // IF-MAP property
-    list device {
-        description "Networking Device";
-        uses ifmap:Identity;
-        key uuid;
-        
-        // IF-MAP properties
-        container system {
-            description "Device system info";
-            leaf family { type string; description "Device Family";}
-            leaf ip { type inet:ip-address; description "Device mgt IP"; }
-        }
-    }
-```
-
-**API to retrieve list of devices**  
-*HTTP Request*
-```
-curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device?size=10&from=5&depth=1&show_href=true' -d '
-{ 
-    "filter": { "system/family": { "match" : "junos-es"} },
-    "sort": [ { "name", "asc" } ]
-}
-'
-```
-In this example, `size` and `from` are the pagination parameters to fetch 10 `device` objects starting from the 6th of matching found devices. `depth=1` specifies to first level of child property value. "show_href=true" specifies to show thereturn the HATEOAS links for the returned objects.
-
-*HTTP Response*
-```
-HTTP/1.1 200 OK
-Server: nginx/1.7.9
-Date: Thu, 05 Mar 2015 01:06:40 GMT
-Content-Type: application/yang.data+json; charset=UTF-8
-Content-Length: 19659
-Connection: keep-alive
-
-{
-    @size: 2,
-	"deivce": [
-		{
-			"name": "my-SRX-1",
-			"fq-name": [ "coke-domain", "finance", "my-SRX-1"],
-			"uuid": "36efa9d3-151e-4535-93da-ca6a8cc78862",
-			"href": "http://10.87.127.180:8082/restconf/data/vnc-cfg/iq-common-data-model:device=36efa9d3-151e-4535-93da-ca6a8cc78862"
-		}, 
-		{
-			"name": "my-SRX-2",
-			"fq-name": [ "coke-domain", "finance", "my-SRX-2"],
-			"uuid": "6554ee51-3dac-488e-8161-c083ea9d04db",
-			"href": "http://10.87.127.180:8082/restconf/data/vnc-cfg/iq-common-data-model:device=6554ee51-3dac-488e-8161-c083ea9d04db"
-		}
-	]				
-}
-```
-
-**API to retrieve device by uuid**
-
-*HTTP Request*
-```
-curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device=36efa9d3-151e-4535-93da-ca6a8cc78862'
-```
-
-*HTTP Response*
-```
-HTTP/1.1 200 OK
-Server: nginx/1.7.9
-Date: Thu, 05 Mar 2015 01:06:40 GMT
-Content-Type: application/yang.data+json; charset=UTF-8
-Content-Length: 19659
-Connection: keep-alive
-
-{
-	"name": "my-SRX-1",
-	"fq-name": [ "coke-domain", "finance", "my-SRX-1"],
-	"uuid": "36efa9d3-151e-4535-93da-ca6a8cc78862",
-	"id_perms": {
-	    "enable": true,
-	    "description": null,
-	    "created": "2014-10-31T18:38:58.860023",
-	    "uuid": {
-	        "uuid_mslong": 3958569321539454500,
-	        "uuid_lslong": 10654050427475560000
-	    },
-	    "last_modified": "2014-10-31T18:38:58.860023",
-	    "permissions": {
-	        "owner": "cloud-admin",
-	        "owner_access": 7,
-	        "other_access": 7,
-	        "group": "cloud-admin-group",
-	        "group_access": 7
-	    }
-	},
-	"system": {
-		"family": "junos-es",
-		"ip": "10.1.1.1"
-	}
-}
-```
+TODO: Link to Juntao's document.
 
 ###8. <a name="section8"></a>RESTCONF API for operations
 
