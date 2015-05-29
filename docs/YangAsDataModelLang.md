@@ -241,7 +241,10 @@ Please note the following points about the above YANG model:
 - The `csp:ref-edge` statement is used to mark the list `/device/script` as modeling a reference relationship from the device resource to script resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual script at the XPath `/script/uuid`.
 - Child nodes of a node marked as `csp:has-edge` or `csp:ref-edge` becomes properties of that edge. For example, `archived-at` becomes a property of the containment edge from the device to configuration-version.
 
-###5. <a name="section5"></a>XSD as Modeling Language for IF-MAP Data Model###
+###5. <a name="section5"></a>Contrail XSD Internals ###
+
+This section explains the conventions used by Contrail when using XSD as Modeling Language for IF-MAP Data Model. Our toolchain generates XSD files that follow these conventions and hence these XSD files can be used by Contrail compiler as shown in the architecture diagram at the top.
+
 **Identity**
 
 Any top level schema node with type `ifmap:IdentityType` is an IF-MAP identity. 
@@ -326,7 +329,9 @@ XSD comment `<!--#IFMAP-SEMANTICS-IDL Link()-->` is used to mark a XSD element a
 TODO: Link to Juntao's document.
 
 ###8. <a name="section8"></a>RESTCONF API for operations
+TODO
 
 ###9. <a name="section9"></a>YANG notifications
+TODO
 
 
