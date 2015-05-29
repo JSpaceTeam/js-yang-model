@@ -7,7 +7,7 @@ We have chosen YANG as the primary data modeling and API definition language for
 - Operational RPCs provided by the micro service to its consumers.
 - Notifications that can be sent by the micro service to subscribers.
 
-From this YANG model, tools generate both the provider-side and consumer-side code for the REST API of this micro service. This is illustrated in the following architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
+From this YANG model, tools generate code required to realize the REST API of this micro service. This is illustrated in the following architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/DataModelDrivenInterface.png)
 
 This document focuses more on using YANG for defining the data model of a micro service. Aspects related to RPCs and notifications will be dealt with in other documents.
@@ -18,13 +18,20 @@ We have made a decision to leverage Contrail technologies as much as possible an
 
 ![](https://github.com/rjoyce/js-yang-model/blob/master/docs/images/contrail-dbaas.png)
 
-In this design, YANG is chosen to define the data model and operations of a CSP service. The REST APIs to access the data model and operations are generated from the YANG schema according to [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol. There are 3 sections in the service YANG definition: a section to defined the data model, a section to define non-CRUD operations (RPCs) supported by the service, and a section to define service notifications.
+In this design, the micro service designer creates a YANG model for the service as shown in the top right-hand side of the above diagram. Our tool chain compiles this model and generates the following:
 
-In order to leverage Contrail infrastructure, the data model defined in the service YANG needs to follow the IF-MAP data model semantics (See [Section 3](#section3)). The data model section of the service YANG schema is compiled to Contrail IF-MAP XSD, which is then compiled into data model CRUD APIs to be plugged into the Contrail API server. The same data model section is also compiled to the Service REST API to access the data model with ability to do paging, filtering, sorting on top of basic CRUD APIs supported by the Contrail API server. 
+- Provider-side stub code for this service's REST APIs. This is marked as (1) in the diagram. These APIs conform to the [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol.
+- Provider-side implementation code for those APIs that deal with CRUD of the service's resources. This is marked as (2) in the diagram. This means that the micro service designer does not have to write code that implements the CRUD APIs. This code also implements paging, sorting, and filtering semantics for these APIs.
+- An XSD file that describes the data model using Contrail's IF-MAP semantics. This is marked as (3) in the diagram. Contrail IF-MAP semantics are briefly explained in subsequent sections of this document. (See [Section 3](#section3)).
 
-The non-CRUD operation section of the service YANG is compiled to REST API stubs to be implemented with service specific business logic. The business logic can access the data model via Contrail API Server and listen for data model changes via RabbitMQ. 
+The generated XSD is then compiled by the Contrail code generator tool to generate the following:
 
-The YANG notification section of the service YANG is compiled into implementation that sends notification to REST client via HTML5 server sent events over HTTP.
+- API-server side code to implement the CRUD operations for this data model by persisting the data inside the Cassandra database.
+- Java client side code to invoke these CRUD APIs. This Java code is internally used by the provider-side implementation code (marked as (2) in the diagram) to interface with the Contrail Config Node via REST.
+
+The operation RPCs defined in the YANG model is compiled to REST API stubs to be implemented with service specific business logic. The business logic can access the data model via Contrail API Server and listen for data model changes via RabbitMQ. This service specific logic for implementing the RPCs is the main piece of code that the micro service designer needs to write.
+
+PS: The YANG notification section of the service YANG is compiled into implementation that sends notification to REST client via HTML5 server sent events over HTTP. This is not shown in the diagram above.
 
 ###3. <a name="section3"></a>Contrail IF-MAP Data Model Semantics
 This section intends to give an introduction to Contrail IF-MAP data model semantics. The main advantages of defining service data model with such semantics are
