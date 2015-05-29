@@ -1,4 +1,4 @@
-##YANG as DDL for CSP Micro Services
+##YANG as the modeling language for CSP Micro Services
 -----------------  
 
 ###1. Introduction
@@ -150,6 +150,86 @@ The `csp:entity` *grouping* is defined as follows:
         }
     }
 ````
+
+Now let's see how these constructs can be used in a service specific data model. As an example, let's consider a Device Management service which manages a list of device resources. Each device resource contains a list of configuration-versions that are archived for the device. Also the service maintains a list of scripts that can be associated with devices. In this example, 
+
+- There are 3 vertices - device, configuration-version, script.
+- There is a has-edge containment relationship between a device and its configuration-versions.
+- There is a ref-edge relationship between a device and a set of scripts.
+
+This is shown in the following YANG snippet:
+
+````
+	list device {
+		uses csp:entity;
+		csp:vertex;
+		
+		key uuid;
+		
+		leaf host-name {
+			type string;
+		}
+		
+		leaf ip-address {
+			type string;
+		}
+		
+		list config-version {
+			csp:has-edge;
+			key uuid;
+			
+			leaf uuid {
+				type leafref {
+					path "/config-version/uuid"
+				}
+			}
+		}
+		
+		list script {
+			csp:ref-edge;
+			key uuid;
+			
+			leaf uuid {
+				type leafref {
+					path "/script/uuid"
+				}
+			}
+		}
+	}
+	
+	list config-version {
+		uses csp:entity;
+		csp:vertex;
+		
+		key uuid;
+		
+		leaf version-num {
+			type uint16;
+		}
+		
+		leaf config-text {
+			type string;
+		}
+	}
+	
+	list script {
+		uses csp:entity;
+		csp:vertex;
+		
+		key uuid;
+		
+		leaf content {
+			type string;
+		}
+	}
+````
+
+Please note the following points about the above YANG model:
+
+- The `csp:vertex` statement is used to mark the device, config-version, and script data nodes as vertices in the graph data model.
+- The `csp:entity` grouping is used inside these nodes to inherit the mandatory properties required by all vertices.
+- The `csp:has-edge` statement is used to mark the list `/device/config-version` as modeling a containment relationship from the device resource to configuration-version resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual configuration-version at the XPath `/configuration-version/uuid`.
+- The `csp:ref-edge` statement is used to mark the list `/device/script` as modeling a reference relationship from the device resource to script resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual script at the XPath `/script/uuid`.
 
 ###4. <a name="section4"></a>Common Data Model vs Service Specific Data Model
 
