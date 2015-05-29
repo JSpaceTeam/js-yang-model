@@ -324,14 +324,14 @@ XSD comment `<!--#IFMAP-SEMANTICS-IDL Link()-->` is used to mark a XSD element a
    </xsd:complexType>
 ```
 
-###6. <a name="section7"></a>RESTCONF API to access the data model
+###6. <a name="section6"></a>RESTCONF API to access the data model
 
 TODO: Link to Juntao's document.
 
-###7. <a name="section8"></a>RESTCONF API for operations
+###7. <a name="section7"></a>RESTCONF API for operations
 TODO
 
-###8. <a name="section9"></a>YANG notifications
+###8. <a name="section8"></a>YANG notifications
 TODO
 
 
