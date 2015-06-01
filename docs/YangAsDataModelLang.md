@@ -1,58 +1,250 @@
-##YANG as DDL for JUNOS-IQ Services
+##YANG as the modeling language for CSP Micro Services
 -----------------  
 
 ###1. Introduction
-We have chosen YANG as the primary modeling and API definition language for config data in JUNOS IQ. This document focuses on using YANG to define data model for the IQ services with IF-MAP semantics. Here is architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
+We have chosen YANG as the data modeling and API definition language for micro services in CSP. This means that the designer of a micro service creates a YANG model with the following:
+- Data model describing the resources which are managed (and exposed) by the micro service.
+- Operational RPCs provided by the micro service to its consumers.
+- Notifications that can be sent by the micro service to subscribers.
+
+From this YANG model, tools generate code required to realize the REST API of this micro service. This is illustrated in the following architecture diagram from JUNOS IQ architecture document ([iq-platform-architecture-specification](https://junipernetworks.sharepoint.com/teams/cto/JunosIQ/JunosIQArch/docs/iq-platform-architecture-specification---22-dec-2014---v8.docx)):
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/DataModelDrivenInterface.png)
 
+This document focuses more on using YANG for defining the data model of a micro service. Aspects related to RPCs and notifications will be dealt with in other documents.
+
 ###2. Leveraging Contrail Config Node Infrastructure
-As stated in the JUNOS IQ architecture document, we are leveraging Contrail as the starting point for JUNOS IQ service-oriented-architecture (SOA). Here is one design of IQ service that leverages Contrail config node infrastructure, including Contrail IF-MAP data model compiler.
 
-![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/iq_contrail.png)
+We have made a decision to leverage Contrail technologies as much as possible and appropriate. As part of this, the Contrail Config Node can be leveraged as a DBaaS. This is shown in the following architecture diagram.
 
-In this design, YANG is chosen to define the data model and operations of an IQ service. The REST APIs to access the data model and operations are generated from the YANG schema according to [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol. There are 3 sections in the service YANG definition: a section to defined the data model, a section to define non-CRUD operations supported by the service, and a section to define service notifications.
+![](https://github.com/rjoyce/js-yang-model/blob/master/docs/images/contrail-dbaas.png)
 
-In order to leverage Contrail infrastructure, the data model defined in the service YANG needs to follow the IF-MAP data model semantics (See [Section 3](#section3)). The data model section of the service YANG schema is compiled to Contrail IF-MAP XSD, which is then compiled into data model CRUD APIs to be plugged into the Contrail API server. The same data model section is also compiled to the Service REST API to access the data model with ability to do paging, filtering, sorting on top of basic CRUD APIs supported by the Contrail API server. 
+The main advantages of leveraging Contrail Config Node as DBaaS are: 
 
-The non-CRUD operation section of the service YANG is compiled to REST API stubs to be implemented with service specific business logic. The business logic can access the data model via Contrail API Server and listen for data model changes via RabbitMQ. 
-
-The YANG notification section of the service YANG is compiled into implementation that sends notification to REST client via HTML5 server sent events over HTTP.
-
-###3. <a name="section3"></a>Contrail IF-MAP Data Model Semantics
-This section intends to give an introduction to Contrail IF-MAP data model semantics. The main advantages of defining service data model with such semantics are
-- The data model can be easily mapped to key-value scale-out database such as Cassandra.
+- The data model can be easily mapped to scale-out database such as Cassandra.
 - REST API (and its implementation) to access the data model can be generated from data model schema. 
 - Other cross-cutting features, such as RBAC, data model change notifcation, and logging, can also be auto-generated from the data model schema.
 
-Contrail IF-MAP data model semantics are basically the graph semantics. Three basic constructs are `identity` (graph vertex), `reference` (edge between the vertices), and `property` that can be attached to either vertex or edge of graph.
+In this design, the micro service designer creates a YANG model for the service as shown in the top right-hand side of the above diagram. Our tool chain compiles this model and generates the following:
+
+- Provider-side stub code for this service's REST APIs. This is marked as (1) in the diagram. These APIs conform to the [RESTCONF](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04) protocol.
+- Provider-side implementation code for those APIs that deal with CRUD of the service's resources. This is marked as (2) in the diagram. This means that the micro service designer does not have to write code that implements the CRUD APIs. This code also implements paging, sorting, and filtering semantics for these APIs.
+- An XSD file that describes the data model using Contrail's IF-MAP semantics. This is marked as (3) in the diagram. Contrail IF-MAP semantics are briefly explained in subsequent sections of this document. (See [Section 3](#section3)).
+
+The generated XSD is then compiled by the Contrail code generator tool to generate the following:
+
+- API-server side code to implement the CRUD operations for this data model by persisting the data inside the Cassandra database.
+- Java client side code to invoke these CRUD APIs. This Java code is internally used by the provider-side implementation code (marked as (2) in the diagram) to interface with the Contrail Config Node via REST.
+
+The operation RPCs defined in the YANG model is compiled to REST API stubs to be implemented with service specific business logic. The business logic can access the data model via Contrail API Server and listen for data model changes via RabbitMQ. This service specific logic for implementing the RPCs is the main piece of code that the micro service designer needs to write.
+
+PS: The YANG notification section of the service YANG is compiled into implementation that sends notification to REST client via HTML5 server sent events over HTTP. This is not shown in the diagram above.
+
+###3. <a name="section3"></a>Contrail IF-MAP Data Model Semantics
+This section intends to give an introduction to Contrail data model semantics. Contrail data model semantics are basically that of a Directed Acyclic Graph. Three basic constructs are `identity` (graph vertex), `reference` (edge between the vertices), and `property` that can be attached to either vertex or edge of graph.
 
 **Identity**  
-An identity represents a vertex in the IF-MAP graph data model. It uniquely identify a category of objects in the data model. Each `identity` instance is uniquely identified by an UUID generated according to [RFC-4122](http://www.ietf.org/rfc/rfc4122.txt). In Contrail implementation, each identity is mapped to a table in Cassandra database.  
+An identity represents a vertex in the graph data model. It uniquely identify a category of objects in the data model. Each `identity` instance is uniquely identified by an UUID generated according to [RFC-4122](http://www.ietf.org/rfc/rfc4122.txt). In Contrail implementation, each identity is mapped to a table in Cassandra database.  
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/I_P.png)
     
 **Reference**  
-A reference represents a directional edge between two vertices in the IF-MAP graph data model. Here are three categories of references supported by Contrail:
-* ***[Ref]*** - Strong reference to guarrantee referential integrity. Object referenced object can not be deleted until the reference is removed.  
+A reference represents a directional edge between two vertices in the graph data model. Here are three categories of references supported by Contrail:
+* ***[Ref]*** - Strong reference that guarantees referential integrity. A referenced object can not be deleted until the reference is removed.
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/ref_link.png)
-* ***[Has]*** - Child object can not exist without parent. When parent object is deleted, its linked child objects are deleted automatically.   
+* ***[Has]*** - This models a parent-child relation. Child object can not exist without parent. When parent object is deleted, its linked children objects are deleted automatically.   
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/has_link.png)
-* ***[Conn]*** - Weak reference that does not prevent referenced object from being deleted. It is up to the application code to validate existence of referenced objects.   
+* ***[Conn]*** - Weak reference that does not prevent referenced object from being deleted. It is up to the application code to validate existence of referenced objects.  
     ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/conn_link.png)  
 
 **Property**  
-The `identity` or `reference` in the IF-MAP data model can have any number of properties. Each property is a name value pair. The value can be either a primitive type or a nested data structure such as JSON. In Contrail implementation, properties are mapped to columns of the Cassandra table.  
+An `identity` or `reference` in the graph data model can have any number of properties. Each property is a name value pair. The value can be either a primitive type or a nested data structure represented as a JSON object. In Contrail implementation, properties are mapped to columns of the Cassandra table.  
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/P.png)
 
 Here is an example from Contrail data model:  
 ![](https://github.com/JSpaceTeam/JSpaceTeam.github.io/raw/master/images/js-yang-model/vnc.png)
 
-###4. <a name="section4"></a>Common Data Model vs Service Specific Data Model
+###4. <a name="section4"></a>Representing  Graph Data Model using YANG
 
-The common data model is shared by all IQ services. "Shared" means that the schema of the common data model is shared among multiple IQ services. It should be possible for any IQ service to extend an existing identity by adding more properties or links to other identities. Identities in this model are in the same namespace to ensure that IQ services do not define their own version of "virtual-network" identity for example. The other important aspect is that the database schema and REST API to read/write persistent data are generated from the data model schema. 
+In order to leverage the Contrail Config Node infrastructure we need to be able to capture the Contrail graph data model semantics inside the YANG models to be defined for CSP micro services. In order to facilitate this, we have defined a common yang module for CSP micro services. This common module is defined [here](https://github.com/Juniper-CSP/csp-yang-data-model/blob/master/common/src/main/yang/csp-common.yang). This module needs to be imported by all CSP service yang modules. It defines the following:
 
-An IQ service can also have its own private data model, or service specific data model. The data model schema of one IQ service may **not** be extended or changed by another IQ service. Each service specific data model has its own namespace. The API to the service specific data model should also be model-driven and generated from a modeling language. It is perfectly OK to use the same data store backend for the sevice specific model as the common data model.
+- a YANG extension named `csp:vertex` that can be used to annotate a data node in a service's data model as forming the vertex of a graph.
+- a YANG extension named `csp:has-edge` that can be used to annotate a data node as having a *containment* relation from its parent data node.
+- a YANG extension named `csp:ref-edge` that can be used to annotate a data node as having a *strong reference* relation from its parent data node.
+- a YANG grouping named `csp:entity` that can be used to *inherit* all the mandatory properties required by a data node that needs to be persisted on the Contrail Config Nodes.
 
-###5. <a name="section5"></a>XSD as Modeling Language for IF-MAP Data Model###
+The `csp:vertex` extension is defined as follows:
+````
+    extension vertex  {
+	    description "A vertex maintains pointers to both a set of incoming and outgoing edges.
+                    The outgoing edges are those edges for which the vertex is the tail.
+                    The incoming edges are those edges for which the vertex is the head.";
+    }
+````
+
+The `csp:has-edge` extension is defined as follows:
+````
+    extension has-edge  {
+        description "An Edge links two vertices. Along with its key/value properties, an edge has both a directionality and a label.
+                    The directionality determines which vertex is the tail vertex (out vertex) and which vertex is the head vertex (in vertex).
+                    The edge label determines the type of relationship that exists between the two vertices.";
+    }
+````
+
+The `csp:ref-edge` extension is defined as follows:
+````
+    extension ref-edge  {
+        description "An Edge links two vertices. Along with its key/value properties, an edge has both a directionality and a label.
+                    The directionality determines which vertex is the tail vertex (out vertex) and which vertex is the head vertex (in vertex).
+                    The edge label determines the type of relationship that exists between the two vertices.";
+    }
+````
+
+The `csp:entity` *grouping* is defined as follows:
+````
+    grouping entity {
+        description "Base grouping for all objects that can be identified, access-coontroled, multi-tenantable";
+        leaf administrative-domain { type string; }
+        leaf type {
+            type enumeration {
+                enum aik-name;
+                enum distinguished-name;
+                enum dns-name;
+                enum email-address;
+                enum hip-hit;
+                enum kerberos-principal;
+                enum username;
+                enum sip-uri;
+                enum tel-uri;
+                enum other;
+            }
+        }
+        leaf other-definition { type string; }
+
+        // Extensions
+        leaf-list fq-name {
+            description "FQDN for the IFMAP identity";
+            type string;
+        }
+        leaf uuid {
+            description "UUID for the IFMAP identity";
+            type yang:uuid;
+        }
+        leaf href {
+            description "HATEOAS HREF for the identity node";
+            type inet:uri;
+        }
+        leaf parent-uuid {
+            description "parent node UUID";
+            type yang:uuid;
+        }
+        leaf parent-href {
+            description "parent node HATEOAS HREF";
+            type inet:uri;
+        }
+        leaf parent-type {
+            description "parent node type";
+            type string;
+        }
+        leaf display-name {
+            description "Display name";
+            type string;
+        }
+    }
+````
+
+Now let's see how these constructs can be used in a service specific data model. As an example, let's consider a Device Management service which manages a list of device resources. Each device resource contains a list of configuration-versions that are archived for the device. Also the service maintains a list of scripts that can be associated with devices. In this example, 
+
+- There are 3 vertices - device, configuration-version, script.
+- There is a has-edge containment relationship between a device and its configuration-versions.
+- There is a ref-edge relationship between a device and a set of scripts.
+
+This is shown in the following YANG snippet:
+
+````
+	list device {
+		uses csp:entity;
+		csp:vertex;
+		
+		key uuid;
+		
+		leaf host-name {
+			type string;
+		}
+		
+		leaf ip-address {
+			type string;
+		}
+		
+		list config-version {
+			csp:has-edge;
+			key uuid;
+			
+			leaf uuid {
+				type leafref {
+					path "/config-version/uuid"
+				}
+			}
+			
+			leaf archived-at {
+				type yang:datetime;
+			}
+		}
+		
+		list script {
+			csp:ref-edge;
+			key uuid;
+			
+			leaf uuid {
+				type leafref {
+					path "/script/uuid"
+				}
+			}
+			
+			leaf deployed-at {
+				type yang:datetime;
+			}
+		}
+	}
+	
+	list config-version {
+		uses csp:entity;
+		csp:vertex;
+		
+		key uuid;
+		
+		leaf version-num {
+			type uint16;
+		}
+		
+		leaf config-text {
+			type string;
+		}
+	}
+	
+	list script {
+		uses csp:entity;
+		csp:vertex;
+		
+		key uuid;
+		
+		leaf content {
+			type string;
+		}
+	}
+````
+
+Please note the following points about the above YANG model:
+
+- The `csp:vertex` statement is used to mark the device, config-version, and script data nodes as vertices in the graph data model.
+- The `csp:entity` grouping is used inside these nodes to inherit the mandatory properties required by all vertices.
+- Child nodes of a node that uses `csp:entity` become properties of that vertex (columns in the Cassandra table for this vertex). For example, `host-name` and `ip-address` are properties of the `device` vertex.
+- The `csp:has-edge` statement is used to mark the list `/device/config-version` as modeling a containment relationship from the device resource to configuration-version resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual configuration-version at the XPath `/configuration-version/uuid`.
+- The `csp:ref-edge` statement is used to mark the list `/device/script` as modeling a reference relationship from the device resource to script resources. Each node in this list has one property `uuid` which is a leafref pointing to the actual script at the XPath `/script/uuid`.
+- Child nodes of a node marked as `csp:has-edge` or `csp:ref-edge` becomes properties of that edge. For example, `archived-at` becomes a property of the containment edge from the device to configuration-version.
+
+###5. <a name="section5"></a>Contrail XSD Internals ###
+
+This section explains the conventions used by Contrail when using XSD as Modeling Language for IF-MAP Data Model. Our toolchain generates XSD files that follow these conventions and hence these XSD files can be used by Contrail compiler as shown in the architecture diagram at the top.
+
 **Identity**
 
 Any top level schema node with type `ifmap:IdentityType` is an IF-MAP identity. 
@@ -132,239 +324,14 @@ XSD comment `<!--#IFMAP-SEMANTICS-IDL Link()-->` is used to mark a XSD element a
    </xsd:complexType>
 ```
 
-###6. <a name="section6"></a>YANG as Modeling Language for IF-MAP Data Model###
-YANG is an industry standard data model definition language that can also be used to define data model with IF-MAP semantics. We take advantage of some YANG features such as grouping, augmentation, etc to enhance the modularity, readability, and overall usability of the schema.
+###6. <a name="section6"></a>RESTCONF API to access the data model
 
-We defined a YANG grouping `ifmap:Idnetity` to mark a top level YANG node as an IF-MAP identity. Any direct child nodes of the identity node are defined as the IF-MAP property of the identity. We also defined 3 YANG groups (`ifmap:HasLink`, `ifmap:RefLink`, and `ifmap:ConnLink`) to mark an YANG node as an IF-MAP link. Instead of defining the IF-MAP link as a top level schema node as in the XSD representation, we define it as child node of the identity node that inherits the `ifmap:HasLink`, `ifmap:RefLink`, or `ifmap:ConnLink`. The child nodes of the link node are defined as the IF-MAP properties of the link node.
+TODO: Link to Juntao's document.
 
-In the following example, `virtual-network` is defined as an IF-MAP identity. `allow-transit` and `network-id` are defined as the IF-MAP properties of the `virtual-network` identity. `network-policies` is defined as the IF-MAP link from `virtual-network` to `network-policy`. `sequence` is defined as the IF-MAP property of the `network-policies` link. 
-```
-    // IF-MAP identity
-    list virtual-network {
-        description "Virutal Network";
-        uses ifmap:Identity;  // mark the virtual-network as an IF-MAP identity
-        key uuid;  
+###7. <a name="section7"></a>RESTCONF API for operations
+TODO
 
-        // IF-MAP properties for the identity
-        leaf allow-transit { 
-            type boolean; 
-        }
-        leaf network-id {
-            type uint32;
-            description "A unique id for the network, auto generated";
-        }
-        ...
-   
-        // IF-MAP REF links
-        list network-policies {
-            uses ifmap:RefLink; // mark network-policies as the RefLink from virtual-network to network-policy
-            key to;
-            leaf to {
-                type leafref { path "/network-policy/uuid"; }
-            }
-            
-            // IF-MAP property for the link
-            container sequence {
-                leaf major { type uint32; }
-                leaf minor { type uint32; }
-            }
-            ...
-        }
-        ...
-   }
-```
-
-**Organizing identities into YANG sub-modules**
-
-When there are large number identities defined in the common data model, it is desirable to group the identities in separate YANG sub-modules. In practice, the sub-modules could be owned by different teams within the company. YANG's augmentation feature allows us to extend/augment an identities defined in different sub-modules.
-
-We have a top level YANG module `iq-common-data-model` for the common data model. This module includes a list of sub-modules. Each sub-module defines a set of identities. For example, the `inv-mgt.yang` contains the `inventory-management` sub-module that defines identities such as `device`, `physical-interface`, `logical-interface`, etc. In this example, the ***img-mgt.yang*** sub-module extends the `device` identity defined in ***inv-mgt.yang*** with a new RefLink to the `image` identity.
-
-*iq-cdm.yang*
-```
-module iq-common-data-model {
-    yang-version 1;
-    namespace "http://www.juniper.net/ns/vnc";
-    prefix "iq-cdm";
-    organization "Juniper Networks";
-    revision "2015-02-05" { description "Initial revision"; }	
-    description "Juniper Common Data Model";
-
-    include inventory-management;
-    include device-management;
-    include image-management;
-    include template-management;
-    ...
-}
-```
-*inv-mgt.yang*
-```
-submodule inventory-management {
-    yang-version 1;
-    belongs-to "iq-common-data-model" {
-        prefix "iq-cdm";
-    }
-
-    import ietf-inet-types { prefix "inet"; }
-    import ietf-yang-types { prefix "yang"; }
-    import iq-ifmap-types { prefix "ifmap"; }
-    contact "JUNOS Space <jspace@juniper.net>";
-    organization "Juniper Networks";
-    description "Inventory management";
-    revision "2015-02-05" { description "Initial revision"; }
-
-    list device {
-        description "Networking device";
-        uses ifmap:Identity;
-        key uuid;
-
-	...
-    }
-    
-    ...
-}
-```
-*img-mgt.yang*
-```
-submodule image-management {
-    ...
-    
-    list image {
-        description "Device image";
-        uses ifmap:Identity;
-        key uuid;
-	
-	...
-    }
-
-    augment "/device" {
-        list image {
-            uses ifmap:RefLink; // RefLink from device to image
-            key to;
-            leaf to {
-                type leafref { path "/image/uuid" };
-            }
-            
-            ...
-        }
-    }
-    
-    ...
-}
-```
-
-**Defining non-CRUD service API via YANG RPC**  
-(TODO)
-
-**Defining service specific notification via YANG notification**  
-(TODO)
-
-###7. <a name="section7"></a>RESTCONF API to access the common or service-specific data model
-The REST APIs to access the common or service-specific data model are generated from the service YANG according to RESTCONF spec. This section does not cover the details on RESTCONF which can be found at [http://tools.ietf.org/html/draft-ietf-netconf-restconf-04](https://tools.ietf.org/html/draft-ietf-netconf-restconf-04)). Instead, we go over an example in this section to show what the APIs look like when they are generated from service YANG.
-
-Let's start with defining the `device` identity in common data model as following:
-```
-    // IF-MAP property
-    list device {
-        description "Networking Device";
-        uses ifmap:Identity;
-        key uuid;
-        
-        // IF-MAP properties
-        container system {
-            description "Device system info";
-            leaf family { type string; description "Device Family";}
-            leaf ip { type inet:ip-address; description "Device mgt IP"; }
-        }
-    }
-```
-
-**API to retrieve list of devices**  
-*HTTP Request*
-```
-curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device?size=10&from=5&depth=1&show_href=true' -d '
-{ 
-    "filter": { "system/family": { "match" : "junos-es"} },
-    "sort": [ { "name", "asc" } ]
-}
-'
-```
-In this example, `size` and `from` are the pagination parameters to fetch 10 `device` objects starting from the 6th of matching found devices. `depth=1` specifies to first level of child property value. "show_href=true" specifies to show thereturn the HATEOAS links for the returned objects.
-
-*HTTP Response*
-```
-HTTP/1.1 200 OK
-Server: nginx/1.7.9
-Date: Thu, 05 Mar 2015 01:06:40 GMT
-Content-Type: application/yang.data+json; charset=UTF-8
-Content-Length: 19659
-Connection: keep-alive
-
-{
-    @size: 2,
-	"deivce": [
-		{
-			"name": "my-SRX-1",
-			"fq-name": [ "coke-domain", "finance", "my-SRX-1"],
-			"uuid": "36efa9d3-151e-4535-93da-ca6a8cc78862",
-			"href": "http://10.87.127.180:8082/restconf/data/vnc-cfg/iq-common-data-model:device=36efa9d3-151e-4535-93da-ca6a8cc78862"
-		}, 
-		{
-			"name": "my-SRX-2",
-			"fq-name": [ "coke-domain", "finance", "my-SRX-2"],
-			"uuid": "6554ee51-3dac-488e-8161-c083ea9d04db",
-			"href": "http://10.87.127.180:8082/restconf/data/vnc-cfg/iq-common-data-model:device=6554ee51-3dac-488e-8161-c083ea9d04db"
-		}
-	]				
-}
-```
-
-**API to retrieve device by uuid**
-
-*HTTP Request*
-```
-curl -XGET 'http://10.87.127.180:8082/restconf/data/iq-common-data-model:device=36efa9d3-151e-4535-93da-ca6a8cc78862'
-```
-
-*HTTP Response*
-```
-HTTP/1.1 200 OK
-Server: nginx/1.7.9
-Date: Thu, 05 Mar 2015 01:06:40 GMT
-Content-Type: application/yang.data+json; charset=UTF-8
-Content-Length: 19659
-Connection: keep-alive
-
-{
-	"name": "my-SRX-1",
-	"fq-name": [ "coke-domain", "finance", "my-SRX-1"],
-	"uuid": "36efa9d3-151e-4535-93da-ca6a8cc78862",
-	"id_perms": {
-	    "enable": true,
-	    "description": null,
-	    "created": "2014-10-31T18:38:58.860023",
-	    "uuid": {
-	        "uuid_mslong": 3958569321539454500,
-	        "uuid_lslong": 10654050427475560000
-	    },
-	    "last_modified": "2014-10-31T18:38:58.860023",
-	    "permissions": {
-	        "owner": "cloud-admin",
-	        "owner_access": 7,
-	        "other_access": 7,
-	        "group": "cloud-admin-group",
-	        "group_access": 7
-	    }
-	},
-	"system": {
-		"family": "junos-es",
-		"ip": "10.1.1.1"
-	}
-}
-```
-
-###8. <a name="section8"></a>RESTCONF API for operations
-
-###9. <a name="section9"></a>YANG notifications
+###8. <a name="section8"></a>YANG notifications
+TODO
 
 
